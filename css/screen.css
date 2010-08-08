@@ -88,13 +88,13 @@ h4 {
   left: 0px;
   top: 20px;
   width: 80%;
-  height: 80px;
-  padding: 40px 0 0 180px;
+  height: 90px;
+  padding: 30px 0 0 180px;
   margin: 0px;
   font-family: Monaco, Consolas, monospace;
   font-size: 48px;
   font-weight: normal;
-  line-height: 1;
+  line-height: 1.2;
   background: url(/images/rsim_small.jpg) no-repeat 40px 0;
 }
 
