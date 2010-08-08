@@ -1,3 +1,32 @@
+def jekyll(opts = "")
+  sh "rm -rf _site"
+  sh "jekyll " + opts
+end
+
+desc "Build site using Jekyll"
+task :build => :tags do
+  jekyll
+end
+
+desc "Serve on Localhost with port 4000"
+task :default do
+  jekyll("--server --auto")
+end
+
+desc "Deploy to live site"
+task :deploy => :"deploy:live"
+
+namespace :deploy do
+  desc "Deploy to Dreamhost"
+  task :live => :build do
+    rsync "blog.rayapps.com"
+  end
+
+  def rsync(domain)
+    sh "rsync -rtz --delete _site/ raymonds72@cayman.dreamhost.com:~/#{domain}/"
+  end
+end
+
 desc 'Generate tags pages'
 task :tags  => :tag_cloud do
   puts "Generating tags..."
