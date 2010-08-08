@@ -11,7 +11,7 @@ html, body {
 
 body {
   font-family: Verdana, Tahoma, Arial, sans-serif;
-  font-size: 90%;
+/*  font-size: 90%;*/
   background-attachment: fixed;
   background-color: white;
   background-image: url(/images/gradient.gif);
@@ -106,7 +106,7 @@ h4 {
 }
 
 #content div, p, td, th, li, pre {
-  font-size: 1em;
+  font-size: 14px;
   line-height: 1.65em;
 }
 
@@ -142,6 +142,10 @@ h4 {
   margin: 0.2em 0px;
 }
 
+#sidebar img {
+  border-style: none;
+}
+
 /* Post */
 
 div.post {
@@ -162,9 +166,9 @@ div.post {
   margin-top: 0.25em;
 }
 
-.post .meta {
+#content .post .meta {
   color: #666;
-  font-size: 0.85em;
+  font-size: 12px;
   margin-bottom: 1em;
 }
 
@@ -207,18 +211,22 @@ div.post {
   font-weight: normal;
 }
 
+.post .highlight pre {
+  font-size: 12px;
+}
+
 .post pre.terminal code {
   background-color: #333;
 }
 
 .post blockquote {
-  border-left: 4px solid #444;
+  border-left: 5px solid #DDD;
+  margin: 15px 30px 0px 10px;
+  padding-left: 20px;
   font-style: italic;
-  margin: 20px;
-  padding-left: 10px;
 }
 .post .warning {
-  background-color: #ff8;
+  background-color: #FF8;
 }
 
 /* Related posts*/
@@ -243,8 +251,21 @@ ul.posts li {
 }
 
 ul.posts span.date {
-  color: #aaa;
+  color: #AAA;
   font-family: Consolas, Monaco, monospace;
   font-size: 80%;
 }
 
+/* Disqus comments */
+
+#disqus_thread div, #disqus_thread p, #disqus_thread td, #disqus_thread th, #disqus_thread li, #disqus_thread pre {
+  font-size: 12px;
+}
+
+#disqus_thread h3 {
+  font-size: 1.0em;
+  font-weight: bold;
+  line-height: 1.5em;
+  margin-top: 1em;
+  margin-bottom: 0.33em;
+}

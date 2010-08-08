@@ -5,10 +5,12 @@ layout: default
   <h3 class="date">{{ page.date | date: "%B %d, %Y" }}</h3>
   <h2 class="title"><a href="{{ page.url }}">{{ page.title }}</a></h2>
   <div class="meta">
-    Posted by <span class="author">Raimonds Simanovskis</span>, tags:
+    Posted by <span class="author">Raimonds Simanovskis</span> &#149;
+    Tags:
     {% for tag in page.tags %}
       <a href="/tags/{{ tag }}" title="View posts tagged with &quot;{{ tag }}&quot;">{{ tag }}</a>{% if forloop.last != true %}, {% endif %}
-    {% endfor %}
+    {% endfor %} &#149;
+    <a href="{{ post.url }}#disqus_thread">Show comments</a>
   </div>
   <div class="body">
     {{ content }}
@@ -23,8 +25,23 @@ layout: default
     </ul>
   </div>
 
-  <div class="comments">
-    <h4>Comments</h4>
+  {% if page.comments_disabled != true %}
+  <div id="comments">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      /**
+        * var disqus_identifier; [Optional but recommended: Define a unique identifier (e.g. post id or slug) for this thread] 
+        */
+      // var disqus_developer = 1;
+      (function() {
+       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+       dsq.src = 'http://rayapps-blog.disqus.com/embed.js';
+       (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=rayapps-blog">comments powered by Disqus.</a></noscript>
   </div>
+  <br/>
+  {% endif %}
 
 </div>

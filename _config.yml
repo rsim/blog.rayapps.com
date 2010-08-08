@@ -1,4 +1,5 @@
 markdown: rdiscount
 pygments: true
-permalink: /:year/:month/:day/:title
+permalink: /:year/:month/:day/:title/
 exclude: Rakefile README.textile
+lsi: true
