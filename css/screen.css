@@ -1,3 +1,5 @@
+/* @override http://localhost:4000/css/screen.css */
+
 /* Global */
 
 * {
@@ -11,7 +13,6 @@ html, body {
 
 body {
   font-family: Verdana, Tahoma, Arial, sans-serif;
-/*  font-size: 90%;*/
   background-attachment: fixed;
   background-color: white;
   background-image: url(/images/gradient.gif);
@@ -81,25 +82,27 @@ h4 {
 }
 
 /* Page layout */
+
 #header {
-  font-family: Consolas, Monaco, monospace;
-  font-size: 3em;
-  font-weight: normal;
-  height: 100px;
-  left: 0px;
-  line-height: 1;
-  margin: 0px;
-  padding-left: 45px;
   position: absolute;
-  top: 40px;
+  left: 0px;
+  top: 20px;
   width: 80%;
+  height: 80px;
+  padding: 40px 0 0 180px;
+  margin: 0px;
+  font-family: Monaco, Consolas, monospace;
+  font-size: 48px;
+  font-weight: normal;
+  line-height: 1;
+  background: url(/images/rsim_small.jpg) no-repeat 40px 0;
 }
 
 #content {
   background-color: white;
   border: 1px solid #EEE;
   margin-left: 40px;
-  margin-right: 20em;
+  margin-right: 17em;
   margin-top: 160px;
   margin-bottom: 20px;
   padding: 0.5em;
@@ -111,13 +114,14 @@ h4 {
 }
 
 /* Sidebar */
+
 #sidebar {
   float: right;
   font-size: 90%;
   position: absolute;
-  right: 5em;
+  right: 2em;
   top: 160px;
-  width: 14em;
+  width: 15em;
 }
 
 #sidebar ul {
@@ -129,6 +133,7 @@ h4 {
 #sidebar li {
   line-height: 1.3em;
 }
+
 #sidebar span.date {
   color: #000;
 }
@@ -191,7 +196,7 @@ div.post {
 .post code {
   background-color: #EEE;
   border: 1px solid #CCC;
-  font-family: Consolas, Monaco, monospace;
+  font-family: Monaco, Consolas, monospace;
   font-size: 12px;
   font-weight: normal;
   padding: 0 .2em;
@@ -206,7 +211,7 @@ div.post {
   border: 1px solid black;
   background-color: #333;
   color: white;
-  font-family: Consolas, Monaco, monospace;
+  font-family: Monaco, Consolas, monospace;
   font-size: 12px;
   font-weight: normal;
 }
@@ -225,6 +230,7 @@ div.post {
   padding-left: 20px;
   font-style: italic;
 }
+
 .post .warning {
   background-color: #FF8;
 }
@@ -252,7 +258,7 @@ ul.posts li {
 
 ul.posts span.date {
   color: #AAA;
-  font-family: Consolas, Monaco, monospace;
+  font-family: Monaco, Consolas, monospace;
   font-size: 80%;
 }
 
