@@ -4,7 +4,7 @@ title: Oracle enhanced adapter presentation at RejectConf in Berlin
 tags: oracle_enhanced ruby rails conference oracle
 ---
 
-<div style="text-align:center;"><img src="/images/rejectconf08.jpg" alt="rejectconf08.jpg" border="0" width="400" height="315" /></div>
+<div style="text-align:center;"><img src="http://blog.rayapps.com/images/rejectconf08.jpg" alt="rejectconf08.jpg" border="0" width="400" height="315" /></div>
 
 I just returned from <a href="http://en.oreilly.com/railseurope2008/public/content/home">RailsConf Europe</a> in Berlin and attended a lot of good Ruby and Rails related sessions.
 

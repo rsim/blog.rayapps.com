@@ -4,7 +4,7 @@ title: Screencast of Oracle E-Business Suite setup management tool
 tags: oracle screencast
 ---
 
-<img src="/images/urra.png" alt="URRA.png" border="0" width="260" height="156" align="right" />**Warning:** this post will be unrelatead to Ruby :)
+<img src="http://blog.rayapps.com/images/urra.png" alt="URRA.png" border="0" width="260" height="156" align="right" />**Warning:** this post will be unrelatead to Ruby :)
 
 For many years our company is using <a href="http://www.it-alise.com/en/solutions/urra">tool for Oracle E-Business Suite setup management</a> that we initially built for our own purposes but now also we are offering to other Oracle partners and customers.
 

@@ -10,7 +10,7 @@ h3. Testing simple function
 
 The first example is based on classic <a href="http://utplsql.sourceforge.net/Doc/fourstep.html#step2">BETWNSTR function example from utPLSQL tutorial</a>.
 
-<div style="text-align:left;"><a href="http://ruby.lv/files/betwnstr.mov" title="Click to play..."><img src="/images/betwnstr.png" alt="betwnstr.png" border="0" width="400" height="300" /></a>
+<div style="text-align:left;"><a href="http://ruby.lv/files/betwnstr.mov" title="Click to play..."><img src="http://blog.rayapps.com/images/betwnstr.png" alt="betwnstr.png" border="0" width="400" height="300" /></a>
 
 <a href="http://ruby.lv/files/betwnstr.mov">Load screencast in QuickTime format (4.7 MB).</a></div>
 
@@ -18,7 +18,7 @@ h3. Testing procedure that changes tables
 
 Second example is based on <a href="http://www.quest.com/code-tester-for-oracle/product-demo/chap02.htm">Quest Code Tester for Oracle testing tables demo screencast</a>. So you can see both unit testing frameworks in action and can compare which you like better :)
 
-<div style="text-align:left;"><a href="http://ruby.lv/files/rooms.mov" title="Click to play..."><img src="/images/rooms.png" alt="rooms.png" border="0" width="400" height="300" /></a>
+<div style="text-align:left;"><a href="http://ruby.lv/files/rooms.mov" title="Click to play..."><img src="http://blog.rayapps.com/images/rooms.png" alt="rooms.png" border="0" width="400" height="300" /></a>
 
 <a href="http://ruby.lv/files/rooms.mov">Load screencast in QuickTime format (8.1 MB).</a></div>
 

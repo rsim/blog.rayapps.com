@@ -13,6 +13,6 @@ I published my slides on Slideshare:
 
 And I published <a href="http://github.com/rsim/legacy_oracle_sample">my demo project</a> on GitHub:
 
-<div style="text-align:center;"><img src="/images/hr-schema-demo.png" border="0" alt="hr_schema_demo.png" width="640" height="231" /></div>
+<div style="text-align:center;"><img src="http://blog.rayapps.com/images/hr-schema-demo.png" border="0" alt="hr_schema_demo.png" width="640" height="231" /></div>
 
 Thanks to all Oracle people who recognize my work on Ruby and Oracle integration and I hope that our common activities will increase number of Ruby and Rails projects on Oracle :)

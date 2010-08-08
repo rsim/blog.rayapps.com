@@ -6,7 +6,7 @@ tags: ntlm windows rails apache authentication
 
 h3. Introduction
 
-<img src="/images/railspluswindows.png" border="0" alt="RailsPlusWindows.png" width="239" height="96" align="right" />In one "enterprise" Ruby on Rails project we had an idea to integrate Windows domain user authentication with Rails application — as majority of users were using Windows and Internet Explorer and always were logged in Windows domain then it would be very good if they could log in automatically to the new Rails application without entering their username and password.
+<img src="http://blog.rayapps.com/images/railspluswindows.png" border="0" alt="RailsPlusWindows.png" width="239" height="96" align="right" />In one "enterprise" Ruby on Rails project we had an idea to integrate Windows domain user authentication with Rails application — as majority of users were using Windows and Internet Explorer and always were logged in Windows domain then it would be very good if they could log in automatically to the new Rails application without entering their username and password.
 
 Windows is using <a href="http://en.wikipedia.org/wiki/NTLM">NTLM protocol</a> to provide such functionality — basically it uses additional HTTP headers to negotiate authentication information between web server and browser. It is tightly integrated into Microsoft Internet Information Server and if you live in pure Windows world then implementation of NTLM authentication is just a checkbox in IIS.
 

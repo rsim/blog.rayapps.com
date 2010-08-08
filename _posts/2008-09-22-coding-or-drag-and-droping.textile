@@ -8,7 +8,7 @@ Today was my first day at Oracle OpenWorld and here are my first impressions fro
 
 The first one was _Building Web 2.0 Social Applications in Ruby on Rails with BEA AquaLogic Interaction_ by <a href="http://blog.thebdgway.com/">Chris Bucchere</a> where he explained how they built social application for BEA conference participants. And it was interesting to see also some code examples from this application that he presented.
 
-<div style="text-align:center;"><img src="/images/drag-and-drop.gif" alt="drag_and_drop.gif" border="0" width="320" height="186" /></div>
+<div style="text-align:center;"><img src="http://blog.rayapps.com/images/drag-and-drop.gif" alt="drag_and_drop.gif" border="0" width="320" height="186" /></div>
 
 And then after that I participated in three Oracle Develop hands-on sessions about <a href="http://www.oracle.com/technologies/soa/soa-suite.html">Oracle SOA suite</a> and <a href="http://www.oracle.com/technology/products/webcenter/index.html">WebCenter</a>. I signed up for these sessions because I thought that they will be more technical and code-intensive compared to other sessions.
 

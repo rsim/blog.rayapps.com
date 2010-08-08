@@ -31,6 +31,6 @@ Therefore I plan to make enhancements to my <a href="http://github.com/rsim/ruby
 h3. Oracle Magazine's Developer of the Year
 
 And finally during Oracle OpenWorld annual Oracle Magazine Editors' Choice Awards 2009 were published. And it was pleasant surprise for me that in this year I got <a href="http://www.oracle.com/technology/oramag/oracle/09-nov/o69awards.html#simanovskis">Oracle Magazine's Developer of the Year</a> award. Thanks to Oracle people who promoted me and thanks for congratulations that I received :) Here is my picture and profile from the latest Oracle Magazine:
-<div style="text-align:center;"><a href="/images/doty.png"><img src="/images/doty_450.png" alt="doty_450.png" border="0" width="450" height="299" /></a>
+<div style="text-align:center;"><a href="http://blog.rayapps.com/images/doty.png"><img src="http://blog.rayapps.com/images/doty_450.png" alt="doty_450.png" border="0" width="450" height="299" /></a>
 
 <font size="-2">Photo &copy; Delmi Alvarez / Getty Images</font></div>

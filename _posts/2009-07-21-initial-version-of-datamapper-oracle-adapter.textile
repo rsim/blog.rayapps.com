@@ -4,7 +4,7 @@ title: Initial version of DataMapper Oracle adapter
 tags: datamapper ruby oracle
 ---
 
-<img src="/images/datamapper.jpg" alt="datamapper.jpg" border="0" width="347" height="91" align="right" style="padding:0 4px 4px 8px;" /><h3>What is DataMapper?</h3>
+<img src="http://blog.rayapps.com/images/datamapper.jpg" alt="datamapper.jpg" border="0" width="347" height="91" align="right" style="padding:0 4px 4px 8px;" /><h3>What is DataMapper?</h3>
 
 <a href="http://www.datamapper.org">DataMapper</a> is Ruby Object/Relational Mapper that is similar to ActiveRecord (component of <a href="http://rubyonrails.org/">Ruby on Rails</a>) but still it handles several things differently than ActiveRecord.
 

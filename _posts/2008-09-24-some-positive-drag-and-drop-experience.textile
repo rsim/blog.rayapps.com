@@ -6,7 +6,7 @@ tags: oracle conference
 
 In the <a href="/2008/09/22/coding-or-drag-and-droping/">previous post</a> I wrote that I didn't quite like drag-and-drop development style in JDeveloper that I experienced during Oracle OpenWorld hands-on session.
 
-<div style="text-align:center;"><img src="/images/oracle-bi.png" alt="oracle_bi.png" border="0" width="640" height="279" /></div>
+<div style="text-align:center;"><img src="http://blog.rayapps.com/images/oracle-bi.png" alt="oracle_bi.png" border="0" width="640" height="279" /></div>
 
 Today I was in <a href="http://www.oracle.com/technology/products/bi/enterprise-edition.html">Oracle BI Answers & Dashboard</a> hands-on session and during this session I was also drag-and-dropping to create reports, charts and business intelligence dashboards. But in this case I liked it as it seemed natural way how to create such reports.
 

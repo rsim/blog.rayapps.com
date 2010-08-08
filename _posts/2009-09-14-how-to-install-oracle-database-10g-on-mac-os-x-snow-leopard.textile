@@ -4,7 +4,7 @@ title: How to install Oracle Database 10g on Mac OS X Snow Leopard
 tags: oracle database mac
 ---
 
-<img src="/images/sl_oracle.jpg" alt="sl_oracle.jpg" border="0" width="250" height="133" align="right">Oracle Database 10g is not yet officially supported on new Mac OS X 10.6 Snow Leopard but thanks to comments at my <a href="http://blog.rayapps.com/2009/04/12/how-to-install-oracle-database-10g-on-mac-os-x-intel/">previous tutorial</a> I managed to do Oracle 10g installation on fresh Mac OS X Snow Leopard.
+<img src="http://blog.rayapps.com/images/sl_oracle.jpg" alt="sl_oracle.jpg" border="0" width="250" height="133" align="right">Oracle Database 10g is not yet officially supported on new Mac OS X 10.6 Snow Leopard but thanks to comments at my <a href="http://blog.rayapps.com/2009/04/12/how-to-install-oracle-database-10g-on-mac-os-x-intel/">previous tutorial</a> I managed to do Oracle 10g installation on fresh Mac OS X Snow Leopard.
 
 If you have upgraded from Leopard with Oracle 10g installation to Snow Leopard then most probably Oracle 10g should work fine and you should not do anything. These instructions are just for fresh installation of Snow Leopard.
 
