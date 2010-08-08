@@ -1,0 +1,70 @@
+---
+layout: post
+title: How to setup Ruby and new Oracle Instant Client on Leopard
+tags: ruby oracle mac
+---
+
+bq(warning). UPDATE: <a href="http://blog.rayapps.com/2009/09/06/how-to-setup-ruby-and-oracle-instant-client-on-snow-leopard/">New version of instructions for Snow Leopard is available here.</a>
+
+h3. Introduction
+
+We waited for it long, long time and finally it has arrived - <a href="http://www.oracle.com/technology/software/tech/oci/instantclient/htdocs/intel_macsoft.html">Oracle Instant Client for Intel Mac</a>. I was lucky to test beta version of the client already for the last couple of weeks and so far everything was working OK. Therefore as the final version is now available to everybody I am here rewriting <a href="http://blog.rayapps.com/2007/08/27/how-to-setup-ruby-and-oracle-client-on-intel-mac/">my previous instructions</a> on how to get Ruby working with Oracle on Mac.
+
+h3. Installing Oracle Instant Client for Intel Mac
+
+At first you need to <a href="http://www.oracle.com/technology/software/tech/oci/instantclient/htdocs/intel_macsoft.html">download Oracle Instant Client for Intel Mac</a>. Download "Instant Client Package - Basic" and "Instant Client Package - SDK" and also I suggest "Instant Client Package - SQL*Plus" if you would like to have command line sqlplus utility.
+
+Unzip downloaded archives and move it where you would like to have it - I am keeping it in /usr/local/oracle/instantclient_10_2. Then go to this directory and make symbolic links for dynamic libraries
+
+pre(terminal). sudo ln -s libclntsh.dylib.10.1 libclntsh.dylib
+sudo ln -s libocci.dylib.10.1 libocci.dylib
+
+Then I recommend to create and place somewhere your tnsnames.ora file where you will keep your database connections definitions - I place this file in directory /usr/local/oracle/network/admin.
+
+Then finally you need to set up necessary environment variables - I place the following definitions in my .bash_profile script:
+
+{% highlight sh %}
+export DYLD_LIBRARY_PATH="/usr/local/oracle/instantclient_10_2"
+export SQLPATH="/usr/local/oracle/instantclient_10_2"
+export TNS_ADMIN="/usr/local/oracle/network/admin"
+export NLS_LANG="AMERICAN_AMERICA.UTF8"
+export PATH=$PATH:$DYLD_LIBRARY_PATH
+{% endhighlight %}
+
+Use your path to Oracle Instant Client if it differc from /usr/local/oracle/instantclient_10_2. And as you see I also define NLS_LANG environment variable - this is necessary if your database is not in UTF8 encoding but in Ruby you want to get UTF-8 encoded strings from the database. Specifying this NLS_LANG environment variable you will force that Oracle Instant Client will do character set translation.
+
+After these steps relaunch Terminal application (so that new environment variables are set), specify database connection in tnsnames.ora file and try if you can access your database with sqlplus from command line.
+
+h3. Ruby installation
+
+If you are using Leopard then I assume that you are using preinstalled Ruby which is the simplest option. I tried to compile Ruby from sources on Mac OS X Leopard but when I compared performance then original Ruby was a little bit faster on some benchmarks and therefore I sticked with original one.
+
+h3. Compile and install ruby-oci8
+
+Download the latest version of <a href="http://rubyforge.org/projects/ruby-oci8/">ruby-oci8</a> (version 1.0.0 at time of writing this post).
+
+As Oracle Instant Client is available just for Intel i386 architecture you need to change in file /usr/lib/ruby/1.8/universal-darwin9.0/rbconfig.rb line 17 to:
+
+{% highlight ruby %}
+'-arch i386'
+{% endhighlight %}
+
+Then go to directory where you extracted ruby-oci8 source and execute ruby-oci8 standard installation sequence:
+
+pre(terminal). ruby setup.rb config
+make
+sudo make install
+
+After that you can change back file /usr/lib/ruby/1.8/universal-darwin9.0/rbconfig.rb line 17 to:
+
+{% highlight ruby %}
+'-arch ppc -arch i386'
+{% endhighlight %}
+
+Now try
+
+pre(terminal). ruby -r oci8 -e "OCI8.new('scott', 'tiger','orcl').exec('select * from emp') do |r| puts r.join(','); end"
+
+or similar to verify that you can access Oracle database from ruby.
+
+That's it! Please write in comments if something is not working according to these instructions.

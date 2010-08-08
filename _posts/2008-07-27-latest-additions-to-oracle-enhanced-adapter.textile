@@ -1,0 +1,19 @@
+---
+layout: post
+title: Latest additions to Oracle enhanced adapter
+tags: oracle_enhanced ruby rails oracle
+---
+
+Short information about latest enhancements in ActiveRecord Oracle enhanced adapter:
+
+* Oracle enhanced adapter is now compatible with <a href="http://compositekeys.rubyforge.org/">composite_primary_keys gem</a> which is quite useful if you are working with legacy databases.
+* Adapter now is also working correctly with Rails 2.1 partial_updates enabled. Previously I mentioned that you needed to disable partial_updates when using CLOB/BLOB columns. Now the issue is found and fixed and partial_updates are working with CLOB/BLOB columns.
+* Support for other date and time formats when assigning string to :date or :datetime column. For example, if you would like to assign strings with format dd.mm.yyyy to date and datetime columns then add the following configuration options:
+{% highlight ruby %}
+ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter.string_to_date_format = "%d.%m.%Y"
+ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter.string_to_time_format = "%d.%m.%Y %H:%M:%S"
+{% endhighlight %}
+
+To get the new release of Oracle enhanced adapter do as always:
+
+pre(terminal). sudo gem install activerecord-oracle_enhanced-adapter

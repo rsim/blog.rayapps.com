@@ -1,0 +1,21 @@
+---
+layout: post
+title: Coding or drag-and-dropping?
+tags: oracle conference
+---
+
+Today was my first day at Oracle OpenWorld and here are my first impressions from the sessions I attended.
+
+The first one was _Building Web 2.0 Social Applications in Ruby on Rails with BEA AquaLogic Interaction_ by <a href="http://blog.thebdgway.com/">Chris Bucchere</a> where he explained how they built social application for BEA conference participants. And it was interesting to see also some code examples from this application that he presented.
+
+<div style="text-align:center;"><img src="/images/drag-and-drop.gif" alt="drag_and_drop.gif" border="0" width="320" height="186" /></div>
+
+And then after that I participated in three Oracle Develop hands-on sessions about <a href="http://www.oracle.com/technologies/soa/soa-suite.html">Oracle SOA suite</a> and <a href="http://www.oracle.com/technology/products/webcenter/index.html">WebCenter</a>. I signed up for these sessions because I thought that they will be more technical and code-intensive compared to other sessions.
+
+As a result I spent three hours in Oracle JDeveloper but all I was doing was dragging-and-dropping and filling some pop-up dialog boxes. I did not write single line of Java code during these workshops. And as a result I had just vague idea why all the dragged components worked together.
+
+Having experience of coding in Ruby and trying to create small and beautiful code this drag-and-drop development did not feel quite natural for me. And I am afraid that this drag-and-drop development approach will create bunch of developers who will not be able to create real code anymore.
+
+The other consequences of this drag-and-drop style coding is that it is hard to version control the resulting generated code and it is also much harder to unit test such generated code. Probably this is the reason why I could not find any OpenWorld session about unit testing and test-driven development.
+
+Am I missing some hidden beauty of drag-and-drop development? Or am I spoiled with beauty of Ruby?

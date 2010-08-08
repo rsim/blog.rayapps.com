@@ -1,0 +1,45 @@
+---
+layout: post
+title: How to explicitly set Oracle DATE column as Ruby Date attribute
+tags: ruby rails oracle
+---
+
+As you probably have noticed Oracle has just one DATE type for table columns which is supposed both for storing just dates and dates with time. From the other side Ruby has different classes Date and Time. If you are using Rails then Rails tries to guess from the database column types what are the classes for corresponding object attributes in Ruby. And as both dates and dates with time appear as DATE columns Rails has difficulties to guess whether it should be Ruby Date or Ruby Time.
+
+Current Rails Oracle adapter has the following workaround implemented:
+
+{% highlight ruby %}
+# * Oracle uses DATE or TIMESTAMP datatypes for both dates and times.
+#   Consequently some hacks are employed to map data back to Date or Time
+#   in Ruby. If the column_name ends in _time it's created as a Ruby Time.
+#   Else if the hours/minutes/seconds are 0, I make it a Ruby Date. Else
+#   it's a Ruby Time. This is a bit nasty - but if you use Duck Typing
+#   you'll probably not care very much. In 9i and up it's tempting to
+#   map DATE to Date and TIMESTAMP to Time, but too many databases use
+#   DATE for both. Timezones and sub-second precision on timestamps are
+#   not supported.
+{% endhighlight %}
+
+This workaround is problematic if you have date columns which can be NULL. In this case Rails cannot determine if this is date or datetime column. And if you use standard scaffolds or, for example, <a href="http://activescaffold.com/">ActiveScaffold</a>, it will use _datetime_select_ helper and not _date_select_ helper for this column - which means that you will be asked to specify also time for new dates.
+
+Therefore, as I typically name all date columns with _DATE at the end, I created a patch which makes all such columns to be handled as Ruby Date attributes:
+
+{% highlight ruby %}
+# RSI: OracleAdapter patch - treat columns which end with 'date' as ruby date type
+module ActiveRecord::ConnectionAdapters
+  class OracleColumn
+    def simplified_type(field_type)
+      return :boolean if OracleAdapter.emulate_booleans && field_type == 'NUMBER(1)'
+      case self.name
+        # RSI: treat columns which end with 'date' as ruby date columns
+        when /date$/i then :date
+        # RSI: removed 'date' from regex
+        when /time/i then :datetime
+        else super
+      end
+    end
+  end
+end
+{% endhighlight %}
+
+Include this in environment.rb file or put it into separate file in e.g. lib directory and require it in environment.rb file.

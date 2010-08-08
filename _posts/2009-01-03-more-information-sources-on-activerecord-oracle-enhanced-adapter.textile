@@ -1,0 +1,17 @@
+---
+layout: post
+title: More information sources on ActiveRecord Oracle enhanced adapter
+tags: oracle_enhanced ruby rails oracle
+---
+
+I'm glad to see that there are many users of <a href="http://github.com/rsim/oracle-enhanced">ActiveRecord Oracle enhanced adapter</a> and therefore comments in this blog is not anymore the best way how to communicate with Oracle enhanced adapter users. Therefore I created several other information exchange places which I hope will be more effective.
+
+The latest addition is <a href="http://github.com/rsim/oracle-enhanced/wikis">wiki pages on GitHub</a> where I put usage description and examples as well as some troubleshooting hints that previously were scattered in README file and different blog posts. This is the first place where to look for information about Oracle enhanced adapter. And if you are GitHub user then you can correct mistakes or add additional content also by yourself.
+
+If you have some question or you would like to discuss some feature then you can use <a href="http://groups.google.com/group/oracle-enhanced">Google discussion group</a>. I will use this discussion group also for new release announcements as well so subscribe to it if you would like to get Oracle enhanced adapter news.
+
+If you would like to report some bug or new feature (and patch would be greatly appreciated) then please use <a href="http://rsim.lighthouseapp.com/projects/11468-oracle-enhanced">Lighthouse issue tracker</a>.
+
+And source code of Oracle enhanced adapter is still located in <a href="http://github.com/rsim/oracle-enhanced">Github repository</a>. If you are GitHub user then you can watch it or even fork it and experiment with some new features.
+
+And BTW I just released <a href="http://groups.google.com/group/oracle-enhanced/browse_thread/thread/874e196fb3d76e89">Oracle enhanced adapter version 1.1.9</a> with some new features and it has been also tested with latest Rails 2.2 release.

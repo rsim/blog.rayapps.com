@@ -1,0 +1,29 @@
+---
+layout: post
+title: Oracle E-Business Suite Authentication in Ruby
+tags: oracle ruby authentication
+---
+
+I was developing Ruby on Rails application that access data from existing Oracle E-Business Suite application and I wanted to add to this application possibility for users to authenticate themselves by their existing Oracle E-Business Suite user names and passwords.
+
+Oracle is not publicly providing algorythms which are used for user passwords encryption (which are stored in FND_USER table) and therefore some googling was necessary. I was lucky to find <a href="http://www.milci.com/eappsjira">Jira eBusiness Suite Authenticator</a> with full source code in Java which also included all Oracle E-Business Suite password encryption / decryption functions. Actually it seems that the >1000 lines source code is decompiled from Oracle Java classes as there are no comments and variable names don't tell anything.
+
+But as I did not have any better source material I started Ruby rewrite of this code and happily managed to finish it in couple of days. As a result I created <a href="http://svn.rayapps.com/plugins/oracle_ebs_authentication/">Oracle EBS Authentication</a> plugin and you can find out in <a href="http://svn.rayapps.com/plugins/oracle_ebs_authentication/README">README</a> file how to install it.
+
+Usage of this plugin is quite simple - here is an example:
+
+{% highlight ruby %}
+database_name = ActiveRecord::Base.connection.current_database
+authenticator = OracleEbsAuthentication::Authenticator.new(database_name)
+if authenticator.validate_user_password(login, password)
+  # user authenticated
+  if authenticator.user_reponsibilities.include? "System Administrator"
+    # user has System Administrator role
+  end
+  # ...
+else
+  # authentication failed
+end
+{% endhighlight %}
+
+BTW Oracle EBS password encryption approach <a href="http://www.integrigy.com/security-resources/advisories/Integrigy_Encrypted_Password_Disclosure.pdf">has quite a lot of weaknesses</a>. So if you provide SQL*Net access to your Oracle EBS database then anyone with valid Oracle EBS user name and password can decrypt APPS database user password and also can decrypt passwords of all other users. You can have a deeper look in plugin source code to understand how it can be done :)

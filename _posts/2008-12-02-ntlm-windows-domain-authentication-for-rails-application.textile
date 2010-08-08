@@ -1,0 +1,158 @@
+---
+layout: post
+title: NTLM Windows domain authentication for Rails application
+tags: ntlm windows rails apache authentication
+---
+
+h3. Introduction
+
+<img src="/images/railspluswindows.png" border="0" alt="RailsPlusWindows.png" width="239" height="96" align="right" />In one "enterprise" Ruby on Rails project we had an idea to integrate Windows domain user authentication with Rails application — as majority of users were using Windows and Internet Explorer and always were logged in Windows domain then it would be very good if they could log in automatically to the new Rails application without entering their username and password.
+
+Windows is using <a href="http://en.wikipedia.org/wiki/NTLM">NTLM protocol</a> to provide such functionality — basically it uses additional HTTP headers to negotiate authentication information between web server and browser. It is tightly integrated into Microsoft Internet Information Server and if you live in pure Windows world then implementation of NTLM authentication is just a checkbox in IIS.
+
+But if you are using Ruby on Rails with Apache web server in front of it and running everything on Linux or other Unix then this is not so simple. Therefore I wanted to share my solution how I solved this problem.
+
+h3. mod_ntlm Apache module installation
+
+The first step is that we need NTLM protocol support for Apache web server so that it could handle Windows domain user authentication with web browser.
+
+The first thing I found was <a href="http://modntlm.sourceforge.net/">mod_ntlm</a>, but unfortunately this project is inactive for many years and do not have support for Apache 2.2 that I am using.
+
+The other option I found was <a href="http://adldap.sourceforge.net/wiki/doku.php?id=mod_auth_ntlm_winbind">mod_auth_ntlm_winbind</a> from Samba project but this solution requires Samba's winbind daemon on the same server which makes the whole configuration more complex and therefore I was not eager to do that.
+
+Then finally I found that someone has <a href="http://mywheel.net/blog/index.php/mod_ntlm2-on-apache-22x/">patched mod_ntlm to work with Apache 2.2</a> and this looked promising. I took this version of mod_ntlm but in addition I needed to make some additional patches to it and as a result I published <a href="http://github.com/rsim/mod_ntlm">my final mod_ntlm version in my GitHub repository</a>.
+
+If you would like to *install mod_ntlm module on Linux* then at first ensure that you have Apache 2.2 installed together with Apache development utilities (check that you have either apxs or apxs2 utility in your path). Then from the source directory of @mod_ntlm@ (that you downloaded from my GitHub repository) do:
+
+pre(terminal). apxs -i -a -c mod_ntlm.c
+
+If everything goes well then it should install @mod_ntlm.so@ module in the directory where all other Apache modules is installed. It also tries to add module load directive in Apache configuration file @httpd.conf@ but please check by yourself that you have
+
+{% highlight apache %}
+LoadModule ntlm_module ...directory.path.../mod_ntlm.so
+{% endhighlight %}
+
+line in your configuration file and directory path is the same as for other Apache modules. Try to restart Apache server to see if the module will be successfully loaded.
+
+I also managed to *install mod_ntlm on my Mac OS X Leopard* so that I could later test NTLM authentication locally. Installation on Mac OS X was a little bit more tricky as I needed to compile 64-bit architecture module to be able to load it with preinstalled Apache:
+
+pre(terminal). sudo ln -s /usr/include/malloc/malloc.h /usr/include/malloc.h
+sudo ln -s /usr/include/sys/statvfs.h /usr/include/sys/vfs.h
+apxs -c -o mod_ntlm.so -Wc,"-shared -arch i386 -arch x86_64" -Wl,"-arch i386 -arch x86_64" mod_ntlm.c
+sudo apxs -i -a -n 'ntlm' mod_ntlm.so
+
+After this check @/etc/apache2/httpd.conf@ file that it includes:
+
+{% highlight apache %}
+LoadModule ntlm_module        libexec/apache2/mod_ntlm.so
+{% endhighlight %}
+
+and try to restart Apache with
+
+pre(terminal). sudo apachectl -k restart
+
+h3. mod_ntlm Apache module configuration
+
+The next thing is that you need to configure @mod_ntlm@. Put these configuration directories in the same place where you have your virtual host configuration directives related to your Rails application. Let's assume that we have domain "domain.com" with domain controllers "dc01.domain.com" and "dc02.domain.com". And let's use /winlogin as a URL which will be used for Windows domain authentication.
+
+{% highlight apache %}
+RewriteEngine On
+<Location /winlogin>
+  AuthName "My Application"
+  AuthType NTLM
+  NTLMAuth on
+  NTLMAuthoritative on
+  NTLMDomain domain.com
+  NTLMServer dc01.domain.com
+  NTLMBackup dc02.domain.com
+  require valid-user
+</Location>
+{% endhighlight %}
+
+@mod_ntlm@ will set @REMOTE_USER@ environment variable with authenticated Windows username. If we are using Mongrel servers cluster behind Apache web server then we need to add the following configuration lines to put @REMOTE_USER@ in HTTP header X-Forwarded-User of forwarded request to Mongrel cluster.
+
+{% highlight apache %}
+RewriteCond %{LA-U:REMOTE_USER} (.+)
+RewriteRule . - [E=RU:%1]
+RequestHeader add X-Forwarded-User %{RU}e
+{% endhighlight %}
+
+Please remember to put all previous configuration lines before any other URL rewriting directives. In my case I have the following configuration lines which will forward all non-static requests to my Mongrel servers cluster (which in my case have HAproxy on port 3000 before them):
+
+{% highlight apache %}
+# Redirect all non-static requests to haproxy
+RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
+RewriteRule ^/(.*)$ http://127.0.0.1:3000%{REQUEST_URI} [L,P,QSA]
+{% endhighlight %}
+
+h3. Rails sessions controller
+
+Now the final part is to handle authenticated Windows users in Rails sessions controller. Here are examples how I am doing this.
+
+routes.rb:
+
+{% highlight ruby %}
+map.winlogin 'winlogin', :controller => 'sessions', :action => 'create_from_windows_login'
+{% endhighlight %}
+
+sessions_controller.rb:
+
+{% highlight ruby %}
+def create_from_windows_login
+  if !(login = forwarded_user)
+    flash[:error] = "Browser did not provide Windows domain user name"
+    user = nil
+  elsif user = User.authenticated_by_windows_domain(login)
+    # user has access rights to system
+  else
+    flash[:error] = "User has no access rights to application"
+  end
+  self.current_user = user
+  if logged_in?
+    # store that next time automatic login should be made
+    cookies[:windows_domain] = {:value => 'true', :expires => Time.now + 1.month}
+    # Because of IE NTLM strange behavior need to give 401 response with Javascript redirect
+    @redirect_to = redirect_back_or_default_url(root_path)
+    render :status => 401, :layout => 'redirect'
+  else
+    render :action => 'new'
+  end
+end
+private
+  def forwarded_user
+    return nil unless x_forwarded_user = request.headers['X-Forwarded-User']
+    users = x_forwarded_user.split(',')
+    users.delete('(null)')
+    users.first
+  end
+{% endhighlight %}
+
+@User.authenticated_by_windows_domain@ is model method that either find existing or creates new user based on authenticated Windows username in parameter and checks that user has access rights. Private method forwarded_user extracts Windows username from HTTP header — in my case it always was formatted as "(null),username" therefore I needed to remove unnecessary "(null)" from it.
+
+In addition I am storing browser cookie that user used Windows domain authentication — it means that next time we can forward this user directly to @/winlogin@ instead of showing login page if user has this cookie. We cannot forward all users to @/winlogin@ as then for all users browser will prompt for Windows username and password (and probably we are also using other authentication methods).
+
+The last thing is that we need to do a little hack as a workaround for strange Internet Explorer behavior. If Internet Explorer has authenticated with some web server using NTLM protocol then IE will  think that this web server will require NTLM authentication for all POST requests. And therefore it does "performance optimization" when doing POST requests to this web server — the first POST request from browser will have no POST data in it, just header with NTLM authentication message. In Rails application case we do not need these NTLM authentications for all POST requests as we are maintaining Rails session to identify logged in users. Therefore we are making this trick that after successful authentication we return HTTP 401 code which makes IE think that it is not authenticated anymore with this web server. But together with HTTP 401 code we return HTML page which forces client side redirect to home page either using JavaScript or
+
+create_from_windows_login.html.erb:
+
+{% highlight erb %}
+<% content_for :head do %>
+  <script language="javascript">
+    <!--
+      location.replace("<%= @redirect_to %>");
+    //-->
+  </script>
+  <noscript>
+    <meta http-equiv="Refresh" content="0; URL=<%= @redirect_to %>" />
+  </noscript>
+<% end %>
+<%= link_to 'Redirecting...', @redirect_to %>
+{% endhighlight %}
+
+@content_for :head@ is used to specify which additional content should be put in @<header>@ part of layout.
+
+As a result you now have basic Windows domain NTLM authentication working. Please let me know in comments if you have any issues with this solution or if you have other suggestions how to use Windows domain NTLM authentication in Rails applications.
+
+h3. Additional hints
+
+NTLM authentication can be used also in Firefox. Enter @about:config@ in location field and then search for @network.automatic-ntlm-auth.trusted-uris@. There you can enter servers for which you would like to use automatic NTLM authentication.

@@ -1,0 +1,41 @@
+---
+layout: post
+title: ActiveRecord Oracle enhanced adapter
+tags: oracle_enhanced ruby rails oracle
+---
+
+In all Ruby on Rails on Oracle projects where I am using original ActiveRecord Oracle adapter I always create some "monkey patches" of Oracle adapter to support my needs. I have written about several of these patches in this blog (see <a href="/2008/01/26/make-rails-database-migrations-faster-on-oracle/">1</a>, <a href="/2008/01/08/fix-for-rails-20-on-oracle-with-database-session-store/">2</a>, <a href="/2007/11/16/some-issues-with-oracle-views-as-activerecord-source/">3</a>).
+
+As such monkey patches are not easily maintainable and reusable between projects I decided to fork existing Oracle adapter and create my own ActiveRecord Oracle "enhanced" adapter where I will add all my enhancements.
+
+Today I released first version (1.1.0) of Oracle enhanced adapter on <a href="http://rubyforge.org/projects/oracle-enhanced/">RubyForge</a> as well as source code is available at <a href="http://github.com/rsim/oracle-enhanced">GitHub</a>.
+
+To install Oracle enhanced adapter execute (should be available soon):
+
+pre(terminal). sudo gem install activerecord-oracle_enhanced-adapter
+
+To use it you need to use "oracle_enhanced" as the adapter name in database.yml configuration file instead of "oracle". In addition I recommend to create config/initializers/oracle_enhanced.rb file where to put any adapter configuration options that you can see below.
+
+Initial version contains the following enhancements:
+
+* Improved perfomance of schema dump methods when used on large data dictionaries
+* Added LOB writing callback for sessions stored in database (see <a href="http://blog.rayapps.com/2008/01/08/fix-for-rails-20-on-oracle-with-database-session-store/">previous post</a>)
+* Added emulate_dates_by_column_name option
+Set the option below and as a result columns with DATE in their name will be emulated as Date (and not as Time which is default for DATE columns in database)
+{% highlight ruby %}
+ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter.emulate_dates_by_column_name = true
+{% endhighlight %}
+* Added emulate_integers_by_column_name option
+Set the option below and as a result number columns with ID at the end of column always will be emulated as Fixnum (useful if in legacy database column type is specified just as NUMBER without precision information which by default is mapped to BigDecimal Ruby type)
+{% highlight ruby %}
+ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter.emulate_integers_by_column_name = true
+{% endhighlight %}
+* Added emulate_booleans_from_strings option
+Set the option below and as a result CHAR(1), VARCHAR2(1) columns or VARCHAR2 columns with FLAG or YN at the end of their name will be emulated as booleans (and "Y" and "N" will be used to store true and false values). This is useful for legacy databases where Rails default convention of NUMBER(1) for boolean values cannot be used (e.g. if you are using Oracle E-Business Suite where booleans are stored as "Y" and "N").
+{% highlight ruby %}
+ActiveRecord::ConnectionAdapters::OracleEnhancedAdapter.emulate_booleans_from_strings = true
+{% endhighlight %}
+
+If you need to override how date, integer or boolean columns are identified then you can redefine class methods is_date_column?, is_integer_column? and is_boolean_column? definitions in OracleEnhancedAdapter class.
+
+Please comment if you find these enhancements useful in your projects and also what other Oracle adapter enhancements you need in your Ruby on Rails on Oracle projects.

@@ -1,0 +1,13 @@
+---
+layout: post
+title: Screencast of Oracle E-Business Suite setup management tool
+tags: oracle screencast
+---
+
+<img src="/images/urra.png" alt="URRA.png" border="0" width="260" height="156" align="right" />**Warning:** this post will be unrelatead to Ruby :)
+
+For many years our company is using <a href="http://www.it-alise.com/en/solutions/urra">tool for Oracle E-Business Suite setup management</a> that we initially built for our own purposes but now also we are offering to other Oracle partners and customers.
+
+As I was bored to do demonstrations of it over and over again I finally decided to create a <a href="http://www.it-alise.com/files/URRA_demo.mov">screencast of this tool</a> (it's 22 MB large). And I think that my first experiment in screencasting is not too bad :)
+
+Previously screencasting was quite hard stuff as there was not so many good tools for that. In this case I used <a href="http://www.varasoftware.com/products/screenflow/">ScreenFlow</a> tool which was released this year (and is available just on Mac OS X Leopard) and I have to say that it is much more better and easier compared to any other tools that I have seen earlier. So I am strongly recommending it to others who are interested in screencasting.

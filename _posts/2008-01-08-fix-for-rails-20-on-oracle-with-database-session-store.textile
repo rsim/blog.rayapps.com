@@ -1,0 +1,42 @@
+---
+layout: post
+title: Fix for Rails 2.0 on Oracle with database session store
+tags: ruby rails oracle
+---
+
+As I started to explore Rails 2.0 I tried to migrate one application to Rails 2.0 which is using Oracle as a database. Here are some initial tips for Rails 2.0 on Oracle that I found out.
+
+Oracle adapter is no more included in Rails 2.0 so you need to install it separately. It is also not yet placed on gems.rubyforge.org therefore you need to install it with:
+
+pre(terminal). sudo gem install activerecord-oracle-adapter --source http://gems.rubyonrails.org
+
+The next issue that you will get is error message "select_rows is an abstract method". You can find more information about it in <a href="http://dev.rubyonrails.org/ticket/10415">this ticket</a>. As suggested I fixed this issue with the following Oracle adapter patch that I call from anvironment.rb file:
+
+{% highlight ruby %}
+module ActiveRecord
+  module ConnectionAdapters
+    class OracleAdapter
+      def select_rows(sql, name = nil)
+        result = select(sql, name)
+        result.map{ |v| v.values}
+      end
+    end
+  end
+end
+{% endhighlight %}
+
+And then I faced very strange behaviour that my Rails application was not working with database session store - no session data was saved. When I changed session store to cookies then everything worked fine.
+
+When I continued investigation I found out that the issue was that for each new session new row was created in "sessions" table but no session data was saved in "data" column. As "data" column is text field which translates to CLOB data type in Oracle then it is not changed in Oracle adapter by INSERT or UPDATE statements but with special "write_lobs" after_save callback (this is done so because in Oracle there is limitation that literal constants in SQL statements cannot exceed 4000 characters and therefore such hack with after_save callback is necessary). And then I found that class CGI::Session::ActiveRecordStore::Session (which is responsible for database session store) does not have this write_lobs after_save filter. Why so?
+
+As I understand now in Rails 2.0 ActiveRecord class definition sequence has changed - now at first CGI::Session::ActiveRecordStore::Session class is defined which inherits from ActiveRecord::Base and only afterwards OracleAdapter is loaded which adds write_lobs callback to ActiveRecord::Base but at this point it is not adding this callback to already defined Session class. As in Rails 1.2 OracleAdapter was loaded together with ActiveRecord and before Session class definition then there was no such issue.
+
+So currently I solved this issue with simple patch in environment.rb file:
+
+{% highlight ruby %}
+class CGI::Session::ActiveRecordStore::Session 
+  after_save :write_lobs
+end
+{% endhighlight %}
+
+Of course it would be nicer to force that OracleAdapter is loaded before CGI::Session::ActiveRecordStore::Session definition (when ActionPack is loaded). If somebody knows how to do that please write a comment :)

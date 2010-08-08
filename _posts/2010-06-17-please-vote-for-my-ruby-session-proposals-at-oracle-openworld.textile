@@ -1,0 +1,16 @@
+---
+layout: post
+title: Please vote for my Ruby session proposals at Oracle OpenWorld
+tags: oracle ruby rails plsql conference
+---
+
+<a href="http://www.oracle.com/us/openworld/index.htm"><img src="/images/oow2010.png" alt="oow2010.png" border="0" width="344" height="106" align="right" style="padding:0 0 10px 20px;"></a>I am trying to tell more people at <a href="http://www.oracle.com/us/openworld/index.htm">Oracle OpenWorld</a> about Ruby and Rails and how it can be used with Oracle database. Unfortunately my session proposals were rejected by organizers but now there is a second chance to propose sessions at <a href="http://mix.oracle.com">mix.oracle.com</a>  and top voted sessions will be accepted for conference. But currently my proposed sessions do not have enough votes :(
+
+I would be grateful if my blog readers and Ruby on Oracle supporters would vote for my sessions <a href="https://mix.oracle.com/oow10/proposals/10704-fast-web-applications-development-with-ruby-on-rails-on-oracle">Fast Web Applications Development with Ruby on Rails on Oracle</a> and <a href="https://mix.oracle.com/oow10/proposals/10703-pl-sql-unit-testing-can-be-fun">PL/SQL Unit Testing Can Be Fun!</a>.
+
+You need to log in to <a href="http://mix.oracle.com">mix.oracle.com</a> with your oracle.com login (or you should create new one if you don't have it). And also you need to vote for at least one more session as well (as votes are counted if you have voted for at least 3 sessions). Voting should be done until end of this week (June 20). 
+
+And if you have other oracle_enhanced or ruby-plsql users in your 
+organization then please ask their support as well :) 
+
+Thanks in advance!

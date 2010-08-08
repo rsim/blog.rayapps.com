@@ -1,0 +1,201 @@
+---
+layout: post
+title: Initial version of DataMapper Oracle adapter
+tags: datamapper ruby oracle
+---
+
+<img src="/images/datamapper.jpg" alt="datamapper.jpg" border="0" width="347" height="91" align="right" style="padding:0 4px 4px 8px;" /><h3>What is DataMapper?</h3>
+
+<a href="http://www.datamapper.org">DataMapper</a> is Ruby Object/Relational Mapper that is similar to ActiveRecord (component of <a href="http://rubyonrails.org/">Ruby on Rails</a>) but still it handles several things differently than ActiveRecord.
+
+I got interested in DataMapper because I liked better some of its design decisions when compared with ActiveRecord. And in particular DataMapper architecture can suite better if you need to work with legacy Oracle database schemas - that is the area where I use Ruby on Rails a lot and for these purposes I also created <a href="http://github.com/rsim/oracle-enhanced">Oracle enhanced adapter for ActiveRecord</a>.
+
+But as there were no Oracle adapter available for DataMapper I needed to create one :) I started to work on Oracle adapter for DataMapper after the RailsConf and now it is passing all DataMapper tests on all Ruby platforms - MRI 1.8, Ruby 1.9 and JRuby 1.3.
+
+h3. Why DataMapper for Oracle database?
+
+If you would like to learn main differences between DataMapper and ActiveRecord then please start with <a href="http://www.datamapper.org/doku.php?id=getting_started_with_datamapper">this overview</a> and <a href="http://www.datamapper.org/doku.php?id=why_datamapper">this summary of benefits</a>.
+
+Here I will mention specific benefits if you would like to use DataMapper with Oracle database.
+
+h4. Model properties
+
+In DataMapper you always specify in model class definition what Ruby "type" you would like to use for each model attribute (or property as called in DataMapper):
+
+{% highlight ruby %}
+class Post
+  include DataMapper::Resource
+  property :id,         Serial
+  property :title,      String
+  property :post_date,  Date
+  property :created_at, DateTime
+  property :updated_at, Time
+end
+
+{% endhighlight %}
+
+The main benefit for that is that you can explicitly define when to use Ruby Time, Date or DateTime class which is stored as DATE (or sometimes as TIMESTAMP) in Oracle database. In addition you can define your own custom DataMapper types and define how to serialize them into database.
+
+h4. Composite primary keys
+
+DataMapper core library supports composite primary keys for models. If you use ActiveRecord then there is an option to use additional composite_primary_keys gem but it regularly breaks with latest ActiveRecord versions and quite often it also might break in some edge cases. In DataMapper composite primary keys are defined quite simple:
+
+{% highlight ruby %}
+class City
+  include DataMapper::Resource
+  property :country,   String, :key => true
+  property :name,      String, :key => true
+end
+
+{% endhighlight %}
+
+h4. Legacy schemas
+
+DataMapper is quite useful when you want to put Ruby models on top of existing Oracle schemas. It is possible to provide different database field name for property or provide custom sequence name for primary keys:
+
+{% highlight ruby %}
+class Post
+  include DataMapper::Resource
+  property :id, Serial, :field => "post_id", :sequence => "post_s"  
+end
+
+{% endhighlight %}
+
+You can also define one model that can be persisted in two different repositories (e.g. databases or schemas) and use different naming conventions in each repository:
+
+{% highlight ruby %}
+class Post
+  include DataMapper::Resource
+  repository(:old) do
+    property :id, Serial, :field => "post_id", :sequence => "post_s"
+  end
+  repository(:default) do
+    property :id, Serial
+  end
+end
+
+{% endhighlight %}
+
+As a result DataMapper can be used also for data migration between different databases.
+
+h4. Bind variables
+
+ActiveRecord always generates SQL statements for execution as one single string. Therefore Oracle enhanced adapter always initializes Oracle session with setting cursor_sharing='similar'. It instructs Oracle always to take all literals (constants) from SQL statement and replace them with bind variables. It reduces the number of unique SQL statements generated but also it is some overhead for Oracle optimizer.
+
+DataMapper always passes all statement parameters separately to corresponding database adapter and therefore it is possible for Oracle adapter to pass all parameters as bind variables to Oracle.
+
+h4. CLOB and BLOB values inserting and selecting
+
+As for ActiveRecord all inserted values should be passed as literals in INSERT statement it was not possible to insert large CLOB and BLOB values directly in INSERT statement. Therefore ActiveRecord Oracle enhanced adapter did separate call-backs for inserting any CLOB or BLOB data after INSERT of other data. In DataMapper it is possible to insert all data at once as CLOB and BLOB data are passed as bind variables.
+
+DataMapper also handles better lazy loading of large columns. So if you define property as Text then by default it will not be selected from database - it will be selected separately only when you use it. Typically it could reduce amount of data that needs to be sent from database to application as Text properties are quite often not needed in e.g. all web pages.
+
+h4. Wny not DataMapper?
+
+If you are fine with ActiveRecord default conventions and you don't have any issues that I listed previously then probably ActiveRecord is good enough for you and you shouldn't change to DataMapper. There are of course much more Rails plugins that work with ActiveRecord but not yet with DataMapper. And DataMapper is still much less used and therefore there might some edge cases where it is not tested and you will need to find the issue causes by yourself.
+
+But if you like to try new things then please try it out - and also DataMapper community is quite friendly and helpful and will help to solve any issues :)
+
+h3. Installation of DataMapper Oracle adapter
+
+So if you have decided to try to use DataMapper with Oracle database then follow the instructions how to install it.
+
+Oracle support is done for current development version 0.10.0 of DataMapper - therefore you will need to install the latest versions from GitHub (they are still not published as gems on RubyForge).
+
+DataMapper with Oracle adapter can be used both on MRI 1.8.6 (I am not testing it on 1.8.7) and Ruby 1.9.1 as well as on JRuby 1.3. And currently installation is tested on Mac OS X and Linux - if there is anyone interested in Windows support then please let me know.
+
+h4. MRI 1.8.6 or Ruby 1.9.1
+
+At first you need to have the same preconditions as for ActiveRecord:
+
+* Oracle Instant Cient
+* ruby-oci8 gem, version 2.0.2 or later
+
+If you are using Mac then you can use <a href="/2009/09/06/how-to-setup-ruby-and-oracle-instant-client-on-snow-leopard/">these instructions</a> for installation.
+
+Now at first it is necessary to install DataObjects Oracle driver - DataObjects library is unified interface to relational databases (like SQLite, MySQL, PostgreSQL, Oracle) that DataMapper uses to access these databases.
+
+At first validate that you have the latest version of rubygems installed and install necessary additional gems:
+
+pre(terminal). gem update --system
+gem install addressable -v 2.0
+
+As I mentioned currently you need to install the latest version from GitHub (at first create and go to directory where you would like to store DataMapper sources):
+
+pre(terminal). git clone git://github.com/datamapper/extlib.git
+cd extlib
+git checkout -b next --track origin/next
+rake install
+cd ..
+git clone git://github.com/datamapper/do.git
+cd do
+git checkout -b next --track origin/next
+cd data_objects
+rake install
+cd ../do_oracle
+rake compile
+rake install
+cd ../..
+
+Now if DataObjects installation was successful you can install DataMapper. UPDATE: Oracle adapter is now in "next" branch of DataMapper so now you need to install it form there:
+
+pre(terminal). git clone git://github.com/datamapper/dm-core.git
+cd dm-core
+git checkout -b next --track origin/next
+rake install
+
+Now start irb and test if you can connect to Oracle database (change database name, username and password according to your setup):
+
+{% highlight ruby %}
+require "rubygems"
+require "dm-core"
+DataMapper.setup :default, "oracle://hr:hr@xe"
+
+{% endhighlight %}
+
+and try some basic DataMapper operations (I assume that you don't have posts table in this schema):
+
+{% highlight ruby %}
+class Post
+  include DataMapper::Resource
+  property :id,     Serial, :sequence => "posts_seq"
+  property :title,  String
+end
+DataMapper.auto_migrate!
+p = Post.create(:title=>"Title")
+Post.get(p.id)
+Post.auto_migrate_down!
+
+{% endhighlight %}
+
+h4. JRuby
+
+At first I assume that you have already installed JRuby latest version (1.3.1 at the moment).
+
+Then you need to place Oracle JDBC driver ojdbc14.jar file in JRUBY_HOME/lib directory (other option is just to put somewhere in PATH).
+
+All other installation should be done in the same way - just use "jruby -S gem" instead of "gem" and "jruby -S rake" instead of "rake" and it should install necessary gems for JRuby.
+
+In addition before installing do_oracle gem you need to install do_jdbc gem (which contains general JDBC driver functionality):
+
+pre(terminal). # after installation of data_objects gem
+cd ../do_jdbc
+jruby -S rake compile
+jruby -S rake install
+# continue with do_oracle installation
+
+h4. Other DataMapper gems
+
+DataMapper is much more componentized than ActiveRecord. Here I described how to install just the main dm-core gem. You can see the list of <a href="http://www.datamapper.org/doku.php?id=gem_maintainers">other gems in DataMapper web site</a>.
+
+To install additional DataMapper gems you need to
+
+pre(terminal). git clone git://github.com/datamapper/dm-more.git
+cd dm-more
+git checkout -b next --track origin/next
+cd dm-some-other-gem
+rake install
+
+h3. Questions?
+
+This was my first attempt to describe how to start to use DataMapper with Oracle. If you have any questions or something is not working for you then please write comments and I will try to answer and fix any issues in these instructions.

@@ -1,0 +1,325 @@
+---
+layout: post
+title: More Oracle data types supported by ruby-plsql gem
+tags: ruby-plsql ruby oracle plsql
+---
+
+I have just released <a href="http://github.com/rsim/ruby-plsql">ruby-plsql</a> gem version 0.4.0 which provides many new features. You can read about initial versions of ruby-plsql in <a href="http://blog.rayapps.com/category/plsql/">previous blog posts</a>.
+
+h3. Oracle complex data type support
+
+Initial versions of ruby-plsql supported just simple Oracle types like @NUMBER@, @VARCHAR2@, @DATE@, @TIMESTAMP@, @CLOB@, @BLOB@ as PL/SQL procedure parameters. Now support for many more complex data types is added. See examples below how to call PL/SQL procedures with these complex data types.
+
+h4. PL/SQL Record
+
+Let's assume you have PL/SQL procedure with PL/SQL record type parameter (which most typically will be in @table%ROWTYPE@ format):
+
+{% highlight sql %}
+CREATE TABLE test_employees (
+          employee_id   NUMBER(15),
+          first_name    VARCHAR2(50),
+          last_name     VARCHAR2(50),
+          hire_date     DATE
+        );
+CREATE OR REPLACE FUNCTION test_full_name (p_employee test_employees%ROWTYPE)
+RETURN VARCHAR2 IS
+BEGIN
+  RETURN p_employee.first_name || ' ' || p_employee.last_name;
+END;
+
+{% endhighlight %}
+
+Then you can create Ruby Hash with record field values (specifying field names as Symbols), e.g.:
+
+{% highlight ruby %}
+p_employee = {
+  :employee_id => 1,
+  :first_name => 'First',
+  :last_name => 'Last',
+  :hire_date => Time.local(2000,01,31)
+}
+
+{% endhighlight %}
+
+and pass this Hash as a parameter which will be translated to PL/SQL record parameter by ruby-plsql:
+
+{% highlight ruby %}
+plsql.test_full_name(p_employee) #=> "First Last"
+# or
+plsql.test_full_name(:p_employee => p_employee) #=> "First Last"
+
+{% endhighlight %}
+
+In the same way you can get PL/SQL function return values or output parameter values as Hash values.
+
+h4. Object type
+
+In similar way also object type parameters can be passed as Hash values. In this case also nested objects or nested collections of objects are supported:
+
+{% highlight sql %}
+CREATE OR REPLACE TYPE t_address AS OBJECT (
+  street    VARCHAR2(50),
+  city      VARCHAR2(50),
+  country   VARCHAR2(50)
+);
+CREATE OR REPLACE TYPE t_phone AS OBJECT (
+  type            VARCHAR2(10),
+  phone_number    VARCHAR2(50)
+);
+CREATE OR REPLACE TYPE t_phones AS TABLE OF T_PHONE;
+CREATE OR REPLACE TYPE t_employee AS OBJECT (
+  employee_id   NUMBER(15),
+  first_name    VARCHAR2(50),
+  last_name     VARCHAR2(50),
+  hire_date     DATE,
+  address       t_address,
+  phones        t_phones
+);
+CREATE OR REPLACE FUNCTION test_full_name (p_employee t_employee)
+  RETURN VARCHAR2
+IS
+BEGIN
+  RETURN p_employee.first_name || ' ' || p_employee.last_name;
+END;
+
+{% endhighlight %}
+
+and from Ruby side you can call this PL/SQL function as:
+
+{% highlight ruby %}
+p_employee = {
+  :employee_id => 1,
+  :first_name => 'First',
+  :last_name => 'Last',
+  :hire_date => Time.local(2000,01,31),
+  :address => {:street => 'Main street 1', :city => 'Riga', :country => 'Latvia'},
+  :phones => [{:type => 'mobile', :phone_number => '123456'}, {:type => 'home', :phone_number => '654321'}]
+}
+plsql.test_full_name(p_employee) #=> "First Last"
+# or
+plsql.test_full_name(:p_employee => p_employee) #=> "First Last"
+
+{% endhighlight %}
+
+And also object type return values and output parameters will be returned as Ruby Hash values (with nested Hashes or Arrays if necessary).
+
+There is one limitation that these object types should be defined as database types and not just inside PL/SQL package definition. Unfortunately you cannot access type definitions inside packages from OCI or JDBC drivers and as a result cannot call such procedures from outside of PL/SQL.
+
+h4. TABLE and VARRAY collections
+
+TABLE and VARRAY collection parameters can be passed as Array values:
+
+{% highlight sql %}
+CREATE OR REPLACE TYPE t_numbers AS TABLE OF NUMBER(15);
+CREATE OR REPLACE FUNCTION test_sum (p_numbers IN t_numbers)
+  RETURN NUMBER
+IS
+  l_sum   NUMBER(15) := 0;
+BEGIN
+  IF p_numbers.COUNT > 0 THEN
+    FOR i IN p_numbers.FIRST..p_numbers.LAST LOOP
+      IF p_numbers.EXISTS(i) THEN
+        l_sum := l_sum + p_numbers(i);
+      END IF;
+    END LOOP;
+    RETURN l_sum;
+  ELSE
+    RETURN NULL;
+  END IF;
+END;
+
+{% endhighlight %}
+
+And from Ruby side:
+
+{% highlight ruby %}
+plsql.test_sum([1,2,3,4]) #=> 10
+
+{% endhighlight %}
+
+h4. CURSOR
+
+You can get also cursor return values from PL/SQL procedures:
+
+{% highlight sql %}
+CREATE OR REPLACE FUNCTION test_cursor
+  RETURN SYS_REFCURSOR
+IS
+  l_cursor  SYS_REFCURSOR;
+BEGIN
+  OPEN l_cursor FOR
+  SELECT * FROM test_employees ORDER BY employee_id;
+  RETURN l_cursor;
+END;
+
+{% endhighlight %}
+
+can be called from Ruby in the following way:
+
+{% highlight ruby %}
+plsql.test_cursor do |cursor|
+  cursor.fetch #=> first row from test_employees will be returned
+end
+
+{% endhighlight %}
+
+It is important to pass block parameter in this case and do something with returned cursor within this block as after ruby-plsql finishes PL/SQL procedure call it will close all open cursors and therefore it will not be possible to do anything with returned cursor outside this block.
+
+It is also possible to use returned cursor as input parameter for another PL/SQL procedure:
+
+{% highlight sql %}
+CREATE OR REPLACE FUNCTION test_cursor_fetch(p_cursor SYS_REFCURSOR)
+  RETURN test_employees%ROWTYPE
+IS
+  l_record  test_employees%ROWTYPE;
+BEGIN
+  FETCH p_cursor INTO l_record;
+  RETURN l_record;
+END;
+
+{% endhighlight %}
+
+which can be called from Ruby
+
+{% highlight ruby %}
+plsql.test_cursor do |cursor|
+  plsql.test_cursor_fetch(cursor) #=> first record as Hash
+end
+
+{% endhighlight %}
+
+*Note*: you can pass cursors as PL/SQL procedure input parameter just when using ruby-plsql on MRI 1.8/1.9 with ruby-oci8, unfortunately I have not found a way how to pass cursor as input parameter when using JRuby and JDBC.
+
+h4. BOOLEAN
+
+And finally you can use also PL/SQL BOOLEAN type - it is quite tricky data type as it is supported just by PL/SQL but not supported as data type in Oracle tables. But now you can also use it with ruby-plsql:
+
+{% highlight sql %}
+CREATE OR REPLACE FUNCTION test_boolean
+  ( p_boolean BOOLEAN )
+  RETURN BOOLEAN
+IS
+BEGIN
+  RETURN p_boolean;
+END;
+
+{% endhighlight %}
+
+{% highlight ruby %}
+plsql.test_boolean(true) #=> true
+
+{% endhighlight %}
+
+You can find more PL/SQL procedure call usage examples in <a href="http://github.com/rsim/ruby-plsql/blob/master/spec/plsql/procedure_spec.rb">ruby-plsql RSpec tests</a>.
+
+h3. Table and sequence operations
+
+I have been using and promoting to others ruby-plsql as PL/SQL procedure unit testing tool. As current PL/SQL unit testing tools are not so advanced and easy to use as Ruby unit testing tools then I like better to use Ruby testing tools (like RSpec) together with ruby-plsql to write short and easy to understand PL/SQL unit tests.
+
+In unit tests in setup and teardown methods you typically need some easy way how to create some sample data in necessary tables as well as to validate resulting data in tables after test execution.
+
+If you are Ruby on Rails developer then you probably will use ActiveRecord (or DataMapper) for manipulation of table data. But if Ruby is used just for unit tests then probably ActiveRecord would be too complicated for this task.
+
+Therefore I added some basic table operations to ruby-plsql which might be useful e.g. in unit tests. Some syntax ideas for these table operations are coming from <a href="http://github.com/jeremyevans/sequel/">Sequel</a> Ruby library.
+
+h4. INSERT
+
+{% highlight ruby %}
+# insert one record
+employee = { :employee_id => 1, :first_name => 'First', :last_name => 'Last', :hire_date => Time.local(2000,01,31) }
+plsql.employees.insert employee # INSERT INTO employees VALUES (1, 'First', 'Last', ...)
+
+# insert many records 
+employees = [employee1, employee2, ... ]  # array of many Hashes
+plsql.employees.insert employees
+
+{% endhighlight %}
+
+If primary key values should be selected from sequence then you can get next sequence values with
+
+{% highlight ruby %}
+plsql.employees_seq.nextval # SELECT employees_seq.NEXTVAL FROM dual
+plsql.employees_seq.currval # SELECT employees_seq.CURRVAL FROM dual
+
+{% endhighlight %}
+
+h4. SELECT
+
+{% highlight ruby %}
+# select one record
+plsql.employees.first # SELECT * FROM employees
+                      # fetch first row => {:employee_id => ..., :first_name => '...', ...}
+plsql.employees.first(:employee_id => 1)  # SELECT * FROM employees WHERE employee_id = 1
+plsql.employees.first("WHERE employee_id = 1")
+plsql.employees.first("WHERE employee_id = :employee_id", 1)
+
+# select many records
+plsql.employees.all                       # => [{...}, {...}, ...]
+plsql.employees.all(:order_by => :employee_id)
+plsql.employees.all("WHERE employee_id > :employee_id", 5)
+
+# count records
+plsql.employees.count                     # SELECT COUNT(*) FROM employees
+plsql.employees.count("WHERE employee_id > :employee_id", 5)
+
+{% endhighlight %}
+
+h4. UPDATE
+
+{% highlight ruby %}
+# update records
+plsql.employees.update(:first_name => 'Second', :where => {:employee_id => 1})
+                      # UPDATE employees SET first_name = 'Second' WHERE employee_id = 1
+
+{% endhighlight %}
+
+h4. DELETE
+
+{% highlight ruby %}
+# delete records
+plsql.employees.delete(:employee_id => 1) # DELETE FROM employees WHERE employee_id = 1
+
+{% endhighlight %}
+
+h4. Other SQL statements
+
+Any other SELECT statement can be executed with
+
+{% highlight ruby %}
+plsql.select :first, "SELECT ..."
+# or
+plsql.select :all, "SELECT ..."
+
+{% endhighlight %}
+
+or any other non-SELECT SQL statement can be executed with
+
+{% highlight ruby %}
+plsql.execute "..."
+
+{% endhighlight %}
+
+And also COMMIT or ROLLBACK could be executed simply with
+
+{% highlight ruby %}
+plsql.commit
+plsql.rollback
+
+{% endhighlight %}
+
+I plan to write a separate blog post about how I recommend to create PL/SQL unit tests using Ruby and ruby-plsql and RSpec.
+
+h3. Install
+
+As always you can install latest version of ruby-plsql with
+
+pre(terminal). gem install ruby-plsql
+
+Latest gem version is just on <a href="http://gemcutter.org/gems/ruby-plsql">Gemcutter</a> but now it should be available as default gem source for all Ruby installations.
+
+And as always ruby-plsql is supported both on
+
+* Ruby 1.8.6/1.8.7 or Ruby 1.9.1 with ruby-oci8 gem version 2.0.3 or later (some specific issues with complex data types will be fixed in later versions of ruby-oci8)
+* JRuby 1.3/1.4 with Oracle JDBC driver (testing mainly with ojdbc14.jar but also ojdbc5.jar or ojdbc6.jar should be fine)
+
+Please try it out and tell me if there are any issues with some particular data types or if there are still some unsupported PL/SQL data types that you would like to be supported in ruby-plsql. And also I encourage you to try ruby-plsql out for PL/SQL unit testing if you had no PL/SQL unit tests previously :)

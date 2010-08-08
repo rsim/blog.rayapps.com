@@ -1,0 +1,38 @@
+---
+layout: post
+title: ActiveRecord Oracle enhanced adapter version 1.1.1 released
+tags: oracle_enhanced ruby rails oracle
+---
+
+I just released <a href="http://rubyforge.org/frs/?group_id=6212&release_id=23422">new version</a> of <a href="http://blog.rayapps.com/2008/05/13/activerecord-oracle-enhanced-adapter/">ActiveRecord Oracle enhanced adapter</a> which includes several new enhancements which could be useful if you use ActiveRecord with legacy Oracle databases:
+
+* Added ignore_table_columns option for class definitions
+You can specify which table (or view) columns should be ignored by ActiveRecord - these could be either columns which you do not need in Rails application or which have currently unsupported data types. For example:
+{% highlight ruby %}
+class Employee < ActiveRecord::Base
+  ignore_table_columns  :phone_number, :hire_date
+end
+{% endhighlight %}
+* Added support for TIMESTAMP columns
+You can create tables with :timestamp data type which will create TIMESTAMP columns and you can access values from TIMESTAMP columns. Unfortunately due to current ruby-oci8 limitations when you will retrieve TIMESTAMP values it will be without fractional seconds (but if you pass Time value with fractional seconds then it will be stored in database).
+* NLS_DATE_FORMAT and NLS_TIMESTAMP_FORMAT independent DATE and TIMESTAMP columns support
+By default Oracle adapter (and enhanced adapter as well) changes NLS_DATE_FORMAT and NLS_TIMESTAMP_FORMAT to 'DD-MON-YYYY HH24:MI:SS'. But if you are working with some legacy database which requires different NLS date settings then now you can change these settings to different ones. You can put in some initialization file some other NLS settings, e.g.:
+{% highlight ruby %}
+ActiveRecord::Base.connection.execute %q{alter session set nls_date_format = 'DD-MON-YYYY HH24:MI:SS'}
+ActiveRecord::Base.connection.execute %q{alter session set nls_timestamp_format = 'DD-MON-YYYY HH24:MI:SS'}
+{% endhighlight %}
+and ActiveRecord will continue to work correctly with date values.
+
+Also one Rails 2.1 related issue was solved. Previously Oracle enhanced adapter always added after_save callback to ActiveRecord session store which stores BLOB data in the database (as in Rails 2.0 there was issue that this callback was not added). Now in Rails 2.1 this callback is added by ActiveRecord therefore Oracle enhanced adapter checks if this callback is already added or not. So now this should work correctly both in Rails 2.0 and Rails 2.1.
+
+Also I have noticed that in some Rails 2.1 applications Oracle adapter is failing on ActiveRecord session store updates when partial updates are enabled. If you also have such issue then put this into your initialization file which will work as workaround until I will find what is causing this problem:
+
+{% highlight ruby %}
+CGI::Session::ActiveRecordStore::Session.partial_updates = false
+{% endhighlight %}
+
+To get the new release just do:
+
+pre(terminal). sudo gem install activerecord-oracle_enhanced-adapter
+
+Source code of Oracle enhanced adapter is located at <a href="http://github.com/rsim/oracle-enhanced">GitHub</a>. And you can submit bug reports and enhancement requests in <a href="http://rsim.lighthouseapp.com/projects/11468-oracle-enhanced/tickets">Lighthouse</a>. There you can see also some identified enhancements - please add comments to them if you also would like to have them. Then it will be easier for me to select what to include in next version of adapter.

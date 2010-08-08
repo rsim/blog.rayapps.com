@@ -1,0 +1,36 @@
+---
+layout: post
+title: Notes from Oracle OpenWorld 2009
+tags: oracle conference
+---
+
+h3. People
+
+Last week I participated in annual <a href="http://www.oracle.com/us/openworld/018079.htm">Oracle OpenWorld 2009</a> conference. There is quite wide coverage of conference in various web sites and blogs therefore I will write just some personal notes that I wanted to highlight.
+
+For me the most value was meeting with different interesting people. At first thanks to <a href="http://blogs.oracle.com/otn/">Justin Kestelyn</a> and all <a href="http://www.oracle.com/technology/index.html">OTN</a> team for Oracle community support. Oracle ACE dinner, bloggers meetup, OTN lounge and unconference were great places where to meet and discuss with interesting and active Oracle community members.
+
+It was nice to meet <a href="http://db360.blogspot.com/">Kuassi Mensah</a> and <a href="http://blogs.oracle.com/opal/">Christopher Jones</a> who are supporters of dynamic languages in Oracle and supporters of Ruby in particular. And also had interesting discussions with <a href="http://twitter.com/rmanalan">Rich Manalang</a> - Ruby guru at Oracle, who is from the <a href="http://theappslab.com/">AppsLab</a> team.
+
+This year there were quite a few Sun people in the conference. Scott McNealy and James Gosling were doing keynotes. And I had interesting discussions with <a href="http://blog.arungupta.me/">Arun Gupta</a> and <a href="http://www.tbray.org/ongoing/">Tim Bray</a>. BTW they have very good coverage of Oracle OpenWorld in their blogs (and also have a fresh look at it as they were for the first time here).
+
+This year I did two <a href="http://wiki.oracle.com/page/Oracle+OpenWorld+Unconference">unconference</a> sessions - <a href="http://www.slideshare.net/rsim/oracle-adapters-for-ruby-orms">Oracle adapters for Ruby ORMs</a> and <a href="http://www.slideshare.net/rsim/server-installation-and-configuration-with-chef">Server Installation and Configuration with Chef</a>. They were not very many attendees but at least it seemed that those who attended were satisfied with content :) This year Oracle Develop track was located quite far from unconference location and probably this also was a reason why there were not very many attendees (as my sessions were quite developer oriented).
+
+h3. Technologies
+
+Here is the list of Oracle products and technologies that I am interested in to spend some time investigating them:
+
+* **Fustion applications.* I expected to hear more about next-generation of new Fusion applications but there was just short demo in the final keynote and a promise that they will be available sometime next year. <a href="http://www.flickr.com/photos/oracleopenworld09/sets/72157622462805751/">User interface</a> of new applications seems much better than for the current Oracle applications as well as current beta-testers are telling that usability is really much better. So I am really looking for trying them out.
+* **Application Development Framework (ADF).* I am not a big fan of <a href="http://www.oracle.com/technology/products/adf/index.html">ADF</a> drag-and-drop development style (that's why I prefer Ruby on Rails :)) but as ADF is the main development platform for Fusion Applications then it will be necessary to use it if we would like to extend or customize Fusion applications. But what I would be really interested in is how to integrate JRuby with ADF - it would be nice to use ADF Faces UI components to get ADF look and feel, but to use JRuby for model & controller business logic development.
+* **SQL Developer unit testing.* It was nice to see that finally Oracle has PL/SQL unit testing support in latest version of <a href="http://www.oracle.com/technology/software/products/sql/index21_EA1.html">SQL Developer</a> which hopefully will increase awareness about unit testing among PL/SQL developers. <a href="http://www.toadworld.com/sf">Steven Feuerstein</a> gave very good "motivational" talk about unit testing during converence. But I still can't decide if SQL Developer repository based unit tests is the best way how to do them. E.g. as all unit tests are stored in database repository you cannot version control them with Subversion or Git (which is the place where we store source of all PL/SQL procedures).
+Therefore I plan to make enhancements to my <a href="http://github.com/rsim/ruby-plsql">ruby-plsql</a> gem to support more PL/SQL data types and then it would be possible to write PL/SQL unit tests with Ruby and RSpec which would provide more compact syntax compared to current <a href="http://utplsql.sourceforge.net/">utPLSQL</a> framework. Need to write blog post about it :)
+* **Oracle Coherence.* Recently I have heard many references to <a href="http://www.oracle.com/technology/products/coherence/index.html">Oracle Coherence</a> in-memory data grid which is often used to achieve high-scalability of web applications. Therefore I am thinking about Ruby client for Coherence and potentially using Coherence as cache solution in Ruby on Rails applications.
+* **Java in database.* Recently I did some experiments with Java stored procedures in Oracle database - and the main reason is that it could provide integration of Oracle database with other systems that have Java based API. I already did experiments with creating Oracle client for <a href="http://www.rabbitmq.com/">RabbitMQ</a> messaging system.
+* **Oracle object types.* Many Oracle products (like Spatial Data option) are using Oracle object types for storing data. Currently these object data types are not supported by Ruby ActiveRecord and DataMapper ORMs. Need to do investigation how they could be supported and how to use Ruby e.g. for accessing spatial data in Oracle database.
+
+h3. Oracle Magazine's Developer of the Year
+
+And finally during Oracle OpenWorld annual Oracle Magazine Editors' Choice Awards 2009 were published. And it was pleasant surprise for me that in this year I got <a href="http://www.oracle.com/technology/oramag/oracle/09-nov/o69awards.html#simanovskis">Oracle Magazine's Developer of the Year</a> award. Thanks to Oracle people who promoted me and thanks for congratulations that I received :) Here is my picture and profile from the latest Oracle Magazine:
+<div style="text-align:center;"><a href="/images/doty.png"><img src="/images/doty_450.png" alt="doty_450.png" border="0" width="450" height="299" /></a>
+
+<font size="-2">Photo &copy; Delmi Alvarez / Getty Images</font></div>

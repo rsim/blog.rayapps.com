@@ -1,0 +1,98 @@
+---
+layout: post
+title: ruby-plsql 0.4.1 - support for package variables, views, dbms_output and more
+tags: ruby-plsql ruby oracle plsql
+---
+
+Based on feedback from using <a href="http://github.com/rsim/ruby-plsql">ruby-plsql</a> for <a href="http://blog.rayapps.com/2009/11/27/oracle-plsql-unit-testing-with-ruby/">PL/SQL unit testing</a> I have release new version 0.4.1 with several new features. You can read about initial versions of ruby-plsql in <a href="http://blog.rayapps.com/category/plsql/">previous blog posts</a>.
+
+h3. Package variables
+
+When you call methods on @plsql@ Ruby object then ruby-plsql uses @all_procedures@ and @all_arguments@ data dictionary views to search for procedures and their argument metadata to construct corresponding PL/SQL block for execution. Unfortunately there are no corresponding data dictionary views for package variables (sometimes called "global variables") that are defined in package specifications. Therefore there was no support for package variables in initial ruby-plsql versions.
+
+But as there is quite frequent need in PL/SQL tests to set and get package variable values then I created the following solution for accessing package variables. I assume that typically package variables are defined in one line in package specifications and I scan PL/SQL package specification source in @all_source@ data dictionary view for potential package variable definitions.
+
+As a result if you have the following example of package specification:
+
+{% highlight sql %}
+CREATE OR REPLACE PACKAGE test_package IS
+  varchar2_variable VARCHAR2(50);
+  number_variable NUMBER(15,2);
+  string_constant CONSTANT  VARCHAR2(10) := 'constant';
+  integer_constant CONSTANT INTEGER := 1;
+END;
+
+{% endhighlight %}
+
+then you can access these package variables in the same way as procedures:
+
+{% highlight ruby %}
+plsql.test_package.varchar2_variable = 'test'
+plsql.test_package.number_variable = 123
+plsql.test_package.varchar2_variable # => 'test'
+plsql.test_package.number_variable # => 123
+plsql.test_package.string_constant # => 'constant'
+plsql.test_package.integer_constant # => 1
+
+{% endhighlight %}
+
+Other basic data types as well as @%ROWTYPE@, @%TYPE@ and schema object types are also supported for package variables. Only custom types defined in package specification are not supported (they are not supported for procedure parameters as well). As there are no data dictionary views for types defined in package specifications I don't feel very enthusiastic about parsing package sources from all_source to get information about types defined inside packages :)
+
+h3. Views
+
+In <a href="http://blog.rayapps.com/2009/11/25/more-oracle-data-types-supported-by-ruby-plsql-gem">previous post</a> I described how to use ruby-plsql to perform basic table operations. Now these operations can be performed also with views:
+
+{% highlight ruby %}
+plsql.view_name.insert
+plsql.view_name.first
+plsql.view_name.all
+plsql.view_name.count
+plsql.view_name.update
+plsql.view_name.delete
+
+{% endhighlight %}
+
+h3. insert_values method
+
+Additional @insert_values@ method is added for tables and views which can be helpful in PL/SQL tests for test data preparation. You can specify with more compact syntax which data you would like to insert into table or view:
+
+{% highlight ruby %}
+plsql.employees.insert_values [:employee_id, :first_name, :last_name],
+    [1, 'First', 'Last'],
+    [2, 'Second', 'Last']
+
+# => INSERT INTO employees (employee_id, first_name, last_name) VALUES (1, 'First', 'Last')
+# => INSERT INTO employees (employee_id, first_name, last_name) VALUES (2, 'Second', 'Last')
+
+{% endhighlight %}
+
+h3. DBMS_OUTPUT logging
+
+If you use @DBMS_OUTPUT.PUT_LINE@ in your PL/SQL procedures to log some debug messages then you can use @plsql.dbms_output_stream=@ method to set where these messages should be displayed. Use the following to display DBMS_OUTPUT messages in standard output:
+
+{% highlight ruby %}
+plsql.dbms_output_stream = STDOUT
+
+{% endhighlight %}
+
+Or write DBMS_OUTPUT messages to file:
+
+{% highlight ruby %}
+plsql.dbms_output_stream = File.new('debug.log', 'w')
+{% endhighlight %}
+
+h3. STANDARD package procedures
+
+Procedures from @SYS.STANDARD@ package can be called without sys.standard prefix, e.g.:
+
+{% highlight ruby %}
+plsql.sysdate
+plsql.substr('abcde',2,2)
+
+{% endhighlight %}
+
+h3. Other improvements
+
+See <a href="http://github.com/rsim/ruby-plsql/blob/master/History.txt">History.txt</a> file for other new features and improvements and see RSpec tests in spec directory for more usage examples.
+
+And also this version of ruby-plsql requires ruby-oci8 gem latest version 2.0.3 (if you use MRI / standard Ruby interpreter 1.8.6, 1.8.7 or 1.9.1) so please upgrade it as well if you do not have it. But as previously you can use ruby-plsql with JRuby and Oracle JDBC driver as well.

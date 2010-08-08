@@ -1,0 +1,53 @@
+---
+layout: post
+title: Using mod_rails with Rails applications on Oracle
+tags: ruby rails oracle apache
+---
+
+As many others I also got interested in new <a href="http://modrails.com/">mod_rails</a> deployment solution for Rails applications. And when I read <a href="http://nubyonrails.com/articles/ask-your-doctor-about-mod_rails">how to use it for development environment needs</a> I decided to try it out.
+
+As you probably know I am using Mac for development and using Oracle database for many Rails applications. So if you do it as well then at first you need to <a href="http://blog.rayapps.com/2008/04/24/how-to-setup-ruby-and-new-oracle-instant-client-on-leopard/">setup Ruby and Oracle on your Mac</a>.
+
+After that I installed and did setup of mod_rails according to <a href="http://www.fngtps.com/2008/04/using-passenger-on-osx-for-rails-development">these instructions</a> and <a href="http://nubyonrails.com/articles/ask-your-doctor-about-mod_rails">these additional notes</a>.
+
+One additional thing that I had to do was to change the user which will be used to run Apache httpd server as otherwise default www user did not see my Rails applications directories. You should do it in /etc/apache2/httpd.conf:
+
+{% highlight apache %}
+User yourusername
+Group yourusername
+{% endhighlight %}
+
+And then I started to fight with the issue that ruby which was started from mod_rails could not load ruby-oci8 library as it could not find Oracle Instant Client shared library. And the reason for that was that mod_rails launched ruby with very minimal list of environment variables. E.g. as DYLD_LIBRARY_PATH environment variable was not specified then ruby-oci8 could not find Oracle Instant Client libraries.
+
+The issue is that there is no documented way how to pass necessary environment variables to mod_rails. Unfortunately mod_rails is ignoring SetEnv settings from Apache httpd.conf file. Therefore I needed to find some workaround for the issue and finally I did the following solution.
+
+I created executable script file /usr/local/bin/ruby_with_env:
+
+{% highlight sh %}
+#!/bin/bash
+export DYLD_LIBRARY_PATH="/usr/local/oracle/instantclient_10_2:$DYLD_LIBRARY_PATH"
+export SQLPATH=$DYLD_LIBRARY_PATH
+export TNS_ADMIN="/usr/local/oracle/network/admin"
+export NLS_LANG="AMERICAN_AMERICA.UTF8"
+/usr/bin/ruby $*
+{% endhighlight %}
+
+and then in Apache httpd.conf file I changed RailsRuby line to
+
+{% highlight apache %}
+RailsRuby /usr/local/bin/ruby_with_env
+{% endhighlight %}
+
+As a result in this way I was able to specify necessary environment variables before Ruby and Rails was started and after this change ruby-oci8 libraries were successfully loaded.
+
+You can use this solution also on Linux hosts where you will deploy Rails applications in production.
+
+Currently I still have issue with mod_rails that it fails to execute RMagick library methods (which is compiled with ImageMagick). I get strange errors in Apache error_log:
+
+{% highlight text %}
+The process has forked and you cannot use this CoreFoundation functionality safely. You MUST exec().
+Break on __THE_PROCESS_HAS_FORKED_AND_YOU_CANNOT_USE_THIS_COREFOUNDATION_FUNCTIONALITY___YOU_MUST_EXEC__() to debug.
+[error] [client ::1] Premature end of script headers:
+{% endhighlight %}
+
+When I was running the same application with Mongrel then everything was running correctly. If anyone has any ideas what could be the reason please write some comment.

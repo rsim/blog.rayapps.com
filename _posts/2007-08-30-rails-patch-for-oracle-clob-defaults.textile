@@ -1,0 +1,68 @@
+---
+layout: post
+title: Rails patch for Oracle CLOB defaults
+tags: ruby rails oracle
+---
+
+If you are using Rails 1.2.3 with Oracle database then you might find that text attributes (which map to Oracle CLOB data type) get invalid default values - e.g. you might find that when you create new record it will get "empty_clob()" as default text attribute value.
+
+I found out that this issue is corrected in current edge Rails. As I still primarily use Rails 1.2.3 I created the following patch according to the changes that are done in edge Rails. You can put it in environment.rb file or better put into a separate file and require it in environment.rb file.
+
+{% highlight ruby %}
+# RSI: text defaults handling from http://dev.rubyonrails.org/ticket/7344 & http://dev.rubyonrails.org/changeset/6090
+module ActiveRecord::ConnectionAdapters
+  class OracleAdapter
+    def quote(value, column = nil) #:nodoc:
+      # RSI: patched
+      if value && column && [:text, :binary].include?(column.type)
+        %Q{empty_#{ column.sql_type.downcase rescue 'blob' }()}
+      else
+        super
+      end
+    end
+
+    def columns(table_name, name = nil) #:nodoc:
+      (owner, table_name) = @connection.describe(table_name)
+      table_cols = <<-SQL
+        select column_name as name, data_type as sql_type, data_default, nullable,
+               decode(data_type, 'NUMBER', data_precision,
+                                 'FLOAT', data_precision,
+                                 'VARCHAR2', data_length,
+                                  null) as limit,
+               decode(data_type, 'NUMBER', data_scale, null) as scale
+          from all_tab_columns
+         where owner      = '#{owner}'
+           and table_name = '#{table_name}'
+         order by column_id
+      SQL
+      select_all(table_cols, name).map do |row|
+        limit, scale = row['limit'], row['scale']
+        if limit || scale
+          row['sql_type'] << "(#{(limit || 38).to_i}" + ((scale = scale.to_i) > 0 ? ",#{scale})" : ")")
+        end
+        # clean up odd default spacing from Oracle
+        if row['data_default']
+          row['data_default'].sub!(/^(.*?)\s*$/, '\1')
+          row['data_default'].sub!(/^'(.*)'$/, '\1')
+          # RSI: patched
+          row['data_default'] = nil if row['data_default'] =~ /^(null|empty_[bc]lob\(\))$/i
+        end
+        OracleColumn.new(oracle_downcase(row['name']),
+                         row['data_default'],
+                         row['sql_type'],
+                         row['nullable'] == 'Y')
+      end
+    end
+
+    # RSI: added
+    def add_column_options!(sql, options) #:nodoc: 
+      # handle case of defaults for CLOB columns, which would otherwise get "quoted" incorrectly 
+      if options_include_default?(options) && (column = options[:column]) && column.type == :text 
+        sql << " DEFAULT #{quote(options.delete(:default))}"  
+      end 
+      super
+    end
+
+  end
+end
+{% endhighlight %}

@@ -1,0 +1,80 @@
+---
+layout: post
+title: "ruby-plsql gem: simple Ruby API for PL/SQL procedures"
+tags: ruby-plsql ruby oracle plsql
+---
+
+In several projects I have used Ruby and Rails to access legacy Oracle databases which have both tables with data as well as PL/SQL packages with lot of existing business logic. Sometimes it is easier just to redo business logic in Ruby but sometimes you need to reuse existing PL/SQL packages and procedures.
+
+Let's use this simple PL/SQL function as an example:
+
+{% highlight sql %}
+CREATE OR REPLACE FUNCTION test_uppercase
+  ( p_string VARCHAR2 )
+  RETURN VARCHAR2
+IS
+BEGIN
+  RETURN UPPER(p_string);
+END test_uppercase;
+{% endhighlight %}
+
+If you are using ruby-oci8 library to connect to Oracle then you can call this PL/SQL procedure from Ruby in the following way (more details can be found in <a href="http://ruby-oci8.rubyforge.org/en/api.html">ruby-oci8 documentation</a>):
+
+{% highlight ruby %}
+conn = OCI8.new("hr","hr","xe")
+cursor = conn.parse <<-EOS
+BEGIN
+  :return := test_uppercase(:p_string);
+END;
+EOS
+cursor.bind_param(':p_string',"xxx",String)
+cursor.bind_param(':return',nil,String,4000)
+cursor.exec
+puts cursor[':return']
+cursor.close
+{% endhighlight %}
+
+This does not look like Ruby-style as it is too long and complex code which just calls one simple PL/SQL function :(
+
+Wouldn't it be much nicer if you could get the same result with the following code?
+
+{% highlight ruby %}
+plsql.connection = OCI8.new("hr","hr","xe")
+puts plsql.test_uppercase('xxx')
+{% endhighlight %}
+
+This idea served as inspiration to create ruby-plsql gem which would provide such nice Ruby API to access existing PL/SQL procedures and functions. Here are other examples how you can use it.
+
+Call procedure with named parameters:
+
+{% highlight ruby %}
+plsql.test_uppercase(:p_string => 'xxx')
+{% endhighlight %}
+
+Call procedure with specified schema:
+
+{% highlight ruby %}
+plsql.hr.test_uppercase('xxx')
+{% endhighlight %}
+
+Call procedure from specified package in specified schema:
+
+{% highlight ruby %}
+plsql.hr.test_package.test_uppercase('xxx')
+{% endhighlight %}
+
+Call procedure with output arguments:
+
+{% highlight ruby %}
+plsql.test_copy("abc", nil, nil) # returns output arguments { :p_to => "abc", :p_to_double => "abcabc" }
+{% endhighlight %}
+
+To install this gem execute
+
+pre(terminal). sudo gem install ruby-plsql
+
+As I mentioned before it also requires ruby-oci8 library to access Oracle. I have plans to create JRuby / JDBC support in the future versions of this gem.
+
+Current limitation is that this API support just NUMBER, VARCHAR2, DATE and TIMESTAMP types for PL/SQL procedures which are dynamically mapped to Ruby Fixnum/Bignum/Float, String, DateTime and Time types.
+
+If you find this gem interesting then please let me know in comments what additional features you would like to have for it.

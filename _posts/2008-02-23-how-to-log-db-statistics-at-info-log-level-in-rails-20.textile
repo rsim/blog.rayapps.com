@@ -1,0 +1,59 @@
+---
+layout: post
+title: How to log DB statistics at info log level in Rails 2.0
+tags: ruby rails
+---
+
+When I switched some my applications to Rails 2.0 I noticed that I do not see anymore DB execution time statistics in my production log file (which I set at info level). Now I saw zero database processing time for all my requests, e.g.:
+
+{% highlight text %}
+Completed in 0.22203 (4 reqs/sec) | Rendering: 0.13277 (59%) | DB: 0.00000 (0%)
+{% endhighlight %}
+
+When investigating why is it so I found the following small changeset that is done in Rails 2.0 - <a href="http://dev.rubyonrails.org/changeset/8162">http://dev.rubyonrails.org/changeset/8162</a>.
+
+In Rails 1.2 at debug level you got both SQL and database processing time in log file and at info level you got just database processing time. In Rails 2.0 at debug level you get the same in log file but at info level you do not get database processing time.
+
+So if you are like me and want to analyze your production log file with tools like <a href="http://nubyonrails.com/articles/a-hodel-3000-compliant-logger-for-the-rest-of-us">pl_analyze</a> then you can monkey patch ActiveRecord to get back the previous behaviour as in Rails 1.2:
+
+{% highlight ruby %}
+module ActiveRecord
+  module ConnectionAdapters
+    class AbstractAdapter
+      protected
+        def log(sql, name)
+          if block_given?
+            # RSI: changed to get DB statistics in log file at info level
+            # if @logger and @logger.debug?
+            if @logger and @logger.level <= Logger::INFO 
+              result = nil
+              seconds = Benchmark.realtime { result = yield }
+              @runtime += seconds
+              log_info(sql, name, seconds)
+              result
+            else
+              yield
+            end
+          else
+            log_info(sql, name, 0)
+            nil
+          end
+        rescue Exception => e
+          # Log message and raise exception.
+          # Set last_verification to 0, so that connection gets verified
+          # upon reentering the request loop
+          @last_verification = 0
+          message = "#{e.class.name}: #{e.message}: #{sql}"
+          log_info(message, name, 0)
+          raise ActiveRecord::StatementInvalid, message
+        end
+    end
+  end
+end
+{% endhighlight %}
+
+And now you will get database processing statistics back in log file at info level:
+
+{% highlight text %}
+Completed in 0.21853 (4 reqs/sec) | Rendering: 0.10835 (49%) | DB: 0.09657 (44%)
+{% endhighlight %}

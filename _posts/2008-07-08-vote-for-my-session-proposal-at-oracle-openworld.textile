@@ -1,0 +1,9 @@
+---
+layout: post
+title: Vote for my session proposal at Oracle OpenWorld
+tags: oracle conference ruby rails
+---
+
+<a href="https://mix.oracle.com/ideas/27038-using-ruby-on-rails-with-oracle-e-business-suite"><img src="/images/oow.png" alt="oow.png" border="0" width="107" height="114" align="right" /></a>If you still have not voted for my session proposal <a href="https://mix.oracle.com/ideas/27038-using-ruby-on-rails-with-oracle-e-business-suite">"Using Ruby on Rails with Oracle E-Business Suite"</a> then please do so :) Voting deadline is near - July 13th.
+
+In any case I am going to be at <a href="http://www.oracle.com/openworld/2008/index.html">Oracle OpenWorld conference</a> in San Francisco in September. So if some of my blog readers will also be there and would like to have some chat with me about Oracle and Ruby then please let me know.

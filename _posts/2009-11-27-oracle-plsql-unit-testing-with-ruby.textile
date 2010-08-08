@@ -1,0 +1,186 @@
+---
+layout: post
+title: Oracle PL/SQL unit testing with Ruby
+tags: ruby-plsql ruby oracle plsql testing
+---
+
+h3. Current PL/SQL unit testing options
+
+Unit testing and TDD (test driven development) practices are nowadays one of the key software development practices. It is especially important if you are doing agile software development in small iterations where you need to automate unit testing as much as possible, as you cannot do manual regression testing of all existing and new functionality at the end of each iteration.
+
+In some languages (like Java, Ruby, Python, C# etc.) there is quite good tools and frameworks support for unit testing and as a result there is quite high testing culture among top developers in these communities. But unfortunately in PL/SQL community so far automated unit testing is not used very often. During recent Oracle OpenWorld conference in presentations about unit testing when it was asked who is doing automated unit testing then only few hands were raised.
+
+Why is it so? And what are current options for doing automated PL/SQL unit testing?
+
+The first unit testing framework for PL/SQL was <a href="http://utplsql.sourceforge.net/">utPLSQL</a> which was created by <a href="http://www.toadworld.com/sf">Steven Feuerstein</a> and based on API defined by many other xUnit style frameworks (like e.g. JUnit). But the issue with this approach was that PL/SQL syntax for tests was quite verbose and tests were not very readable (see <a href="http://utplsql.cvs.sourceforge.net/viewvc/utplsql/examples/ut_betwnstr.pkb?view=markup">example</a>). As a result Steven stopped developing further utPLSQL and currently there are no other active maintainers of this project. There are some other alternative frameworks which tried to simplify writing tests in PL/SQL (OUnit, pl/unit, PLUTO etc.) but none of them are very actively used and maintained by PL/SQL community.
+
+Because of the issues with utPLSQL Steven Feuerstein started development of graphical interface tool for PL/SQL unit testing which is now <a href="http://unittest.inside.quest.com">Quest Code Tester for Oracle</a>. This tool is actively developed and maintained by Quest Software but there are several issues with it:
+
+* It is a commercial tool and as a result it will not become widely accepted by all PL/SQL developers. There is also a freeware edition of it but the functionality of it is <a href="http://unittest.inside.quest.com/servlet/KbServlet/download/2792-102-5392/Differences%20Between%20Quest%20Code%20Tester%20for%20Oracle%20Freeware%20and%20Commercial.htm">very limited</a>.
+* It is a graphical tool - it can help you with quick creation of simple tests but when you will need more complex logic you might get stuck that you cannot do it (or you need to do it again in plain PL/SQL and have the same issues as in utPLSQL).</li>
+* It stores tests in database repository - and it means that it might be hard to maintain unit tests in version control system like Subversion or Git.
+
+And finally also Oracle started to do something in PL/SQL unit testing area and there is unit testing support in latest <a href="http://www.oracle.com/technology/products/database/sql_developer/index.html">SQL Developer version 2.1</a> which currently still is in early adopter status. SQL Developer has very similar approach to Quest Code Tester - it is graphical tool which stores tests and test results in repository. So the benefit of SQL Developer over Quest Code Tester is that it is free :) But compared to Quest Code Tester it still has less features (e.g. currently not all complex data types are supported) and still is not released as final version and still has bugs.
+
+h3. Ruby as testing tool for PL/SQL
+
+As you probably know I am quite big <a href="http://www.ruby-lang.org/en/">Ruby</a> fan and always exploring new ways how to use Ruby to increase my productivity. And Ruby community has very high testing culture and has many good tools for testing support (I like and use <a href="http://rspec.info/">RSpec</a> testing framework). Therefore some time ago I started to use Ruby and RSpec also for testing PL/SQL code in our projects where we use Ruby on Rails on top of Oracle databases with existing PL/SQL business logic.
+
+I have created <a href="http://github.com/rsim/ruby-plsql">ruby-plsql</a> library which provides very easy API for calling PL/SQL procedures from Ruby and recent ruby-plsql version <a href="/2009/11/25/more-oracle-data-types-supported-by-ruby-plsql-gem/">supports majority of PL/SQL data types</a>.
+
+So let's start with with simple example how to use Ruby, RSpec and ruby-plsql to create PL/SQL procedure unit test. I will use BETWNSTR procedure example from utPLSQL examples:
+
+{% highlight sql %}
+CREATE OR REPLACE FUNCTION betwnstr (
+   string_in   IN   VARCHAR2,
+   start_in    IN   INTEGER,
+   end_in      IN   INTEGER
+)
+   RETURN VARCHAR2
+IS
+   l_start PLS_INTEGER := start_in;
+BEGIN
+   IF l_start = 0
+   THEN
+      l_start := 1;
+   END IF;
+   RETURN (SUBSTR (string_in, l_start, end_in - l_start + 1));
+END;
+
+{% endhighlight %}
+
+I took <a href="http://utplsql.cvs.sourceforge.net/viewvc/utplsql/examples/ut_betwnstr_gen.pkg?view=markup">example tests from utPLSQL</a> and wrote them in Ruby and RSpec:
+
+{% highlight ruby %}
+describe "Between string" do
+  it "should be correct in normal case" do
+    plsql.betwnstr('abcdefg', 2, 5).should == 'bcde'
+  end
+  it "should be correct with zero start value" do
+    plsql.betwnstr('abcdefg', 0, 5).should == 'abcde'
+  end
+  it "should be correct with way big end value" do
+    plsql.betwnstr('abcdefg', 5, 500).should == 'efg'
+  end
+  it "should be correct with NULL string" do
+    plsql.betwnstr(nil, 5, 500).should be_nil
+  end
+end
+
+{% endhighlight %}
+
+As you can see the tests are much shorter than in utPLSQL and are much more readable (also more readable than <a href="http://utplsql.cvs.sourceforge.net/viewvc/utplsql/examples/bewtnstr.utc?view=markup">utPLSQL template</a> which can be used to generate utPLSQL tests). And also you can create these tests faster than using GUI tools like Quest Code Tester or SQL Developer.
+
+h3. More complex example
+
+Second more complex example I took from <a href="http://www.oracle.com/technology/obe/11gr2_db_prod/appdev/sqldev/sqldev_unit_test/sqldev_unit_test_otn.htm">SQL Developer unit testing tutorial</a>. We will create tests for PL/SQL procedure AWARD_BONUS:
+
+{% highlight sql %}
+CREATE OR REPLACE
+ PROCEDURE award_bonus (
+  emp_id NUMBER, sales_amt NUMBER) AS
+  commission    REAL;
+  comm_missing  EXCEPTION;
+BEGIN
+  SELECT commission_pct INTO commission
+    FROM employees2
+      WHERE employee_id = emp_id;
+  IF commission IS NULL THEN
+    RAISE comm_missing;
+  ELSE
+    UPDATE employees2
+      SET salary = NVL(salary,0) + sales_amt*commission
+        WHERE employee_id = emp_id;
+  END IF;
+END award_bonus;
+
+{% endhighlight %}
+
+I didn't quite like the testing approach in SQL Developer unit testing tutorial - it was assuming that there is already specific data in employees2 table and was testing procedure using specific primary key values. As a result tests are not very readable as you cannot see all input data in the test case and tests could easily broke if initial data in table are different.
+
+Therefore I created tests in Ruby using better approach that each test creates all necessary data that are needed for it and at the end of test there are no side effects which can influence other tests:
+
+{% highlight ruby %}
+describe "Award bonus" do
+  include CustomerFactory
+  
+  [ [1000,  1234.55,  0.10,   1123.46],
+    [nil,   1234.56,  0.10,   123.46],
+    [1000,  1234.54,  0.10,   1123.45]
+  ].each do |salary, sales_amt, commission_pct, result|
+    it "should calculate base salary #{salary.inspect} + sales amount #{sales_amt} * " +
+                  "commission percentage #{commission_pct} = salary #{result.inspect}" do
+      employee = create_employee(
+        :commission_pct => commission_pct,
+        :salary => salary
+      )
+      plsql.award_bonus(employee[:employee_id], sales_amt)
+      get_employee(employee[:employee_id])[:salary].should == result
+    end
+  end
+end
+
+{% endhighlight %}
+
+I am generating three different tests with three different sets of input values. When you run these tests you see result:
+
+{% highlight text %}
+Award bonus
+- should calculate base salary 1000 + sales amount 1234.55 * commission percentage 0.1 = salary 1123.46
+- should calculate base salary NULL + sales amount 1234.56 * commission percentage 0.1 = salary 123.46
+- should calculate base salary 1000 + sales amount 1234.54 * commission percentage 0.1 = salary 1123.45
+
+{% endhighlight %}
+
+In addition I am using factory pattern (create_customer method) for test data creation. When using factory pattern you create test data creation method which will create valid new record with default field values. If in your test you need some specific non-default values then you can pass just these values as parameters to factory method. Factory pattern also helps in the maintenance of tests. For example, if new mandatory columns will be added to employees table then it will be necessary to add new fields with default values in factory methods and nothing should be changed in individual tests.
+
+Here is example of employee factory implementation:
+
+{% highlight ruby %}
+module EmployeeFactory
+  # Creates new employee with valid field values.
+  # Pass in parameters only field values that you want to override.
+  def create_employee(params)
+    employee = {
+      :employee_id => plsql.employees2_seq.nextval,
+      :last_name => 'Last',
+      :email => 'last@example.com',
+      :hire_date => Date.today,
+      :job_id => plsql.jobs.first[:job_id],
+      :commission_pct => nil,
+      :salary => nil
+    }.merge(params)
+    plsql.employees2.insert employee
+    get_employee employee[:employee_id]
+  end
+  
+  # Select employee by primary key
+  def get_employee(employee_id)
+    plsql.employees2.first :employee_id => employee_id
+  end
+end
+
+{% endhighlight %}
+
+And here is additional test for testing if procedure will raise exception if one input value is missing:
+
+{% highlight ruby %}
+  it "should raise ORA-06510 exception if commission percentage is missing" do
+    salary, sales_amt, commission_pct = 1000,  1234.55,  nil
+    employee = create_employee(
+      :commission_pct => commission_pct,
+      :salary => salary
+    )
+    lambda do
+      plsql.award_bonus(employee[:employee_id], sales_amt)
+    end.should raise_error(/ORA-06510/)
+  end
+
+{% endhighlight %}
+
+h3. How to use it
+
+I hope that if you are looking for PL/SQL unit testing tool then you will try this out :) You can get examples from this article together with necessary setup code and installation instructions at  <a href="http://github.com/rsim/ruby-plsql-spec">http://github.com/rsim/ruby-plsql-spec</a>.
+
+If you have any feedback or questions or feature suggestions then please comment.
+

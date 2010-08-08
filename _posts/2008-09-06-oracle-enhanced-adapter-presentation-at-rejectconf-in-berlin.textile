@@ -1,0 +1,15 @@
+---
+layout: post
+title: Oracle enhanced adapter presentation at RejectConf in Berlin
+tags: oracle_enhanced ruby rails conference oracle
+---
+
+<div style="text-align:center;"><img src="/images/rejectconf08.jpg" alt="rejectconf08.jpg" border="0" width="400" height="315" /></div>
+
+I just returned from <a href="http://en.oreilly.com/railseurope2008/public/content/home">RailsConf Europe</a> in Berlin and attended a lot of good Ruby and Rails related sessions.
+
+I also tried to submit there my session proposal about using Rails with Oracle but as there were too many good proposals and as my topic was with too narrow topic then it was not accepted. Therefore I used opportunity to give 5 minutes presentation about Oracle enhanced adapter in <a href="http://www.rug-b.com/trac/wiki/RejectConf">RejectConf</a> where anybody could present anything.
+
+<a href="/files/rejectconf-oracle-enhaced-adapter.pdf" title="rejectconf_oracle_enhaced_adapter.pdf">Here are my slides</a> that I used in this presentation. And at least one participant was interested in this topics as he uses Rails and Oracle and did not know about my adapter.
+
+My next public appearance is planned at <a href="http://wiki.oracle.com/page/Oracle+OpenWorld+Unconference">Oracle OpenWorld unconference</a> where I have recerved time slot on Thursday, September 25th at 10am. Please come there if you are attending Oracle OpenWorld and are interested in how to use Ruby on Rails with your legacy Oracle databases.

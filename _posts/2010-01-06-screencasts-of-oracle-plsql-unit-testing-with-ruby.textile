@@ -1,0 +1,37 @@
+---
+layout: post
+title: Screencasts of Oracle PL/SQL unit testing with Ruby
+tags: ruby-plsql oracle plsql testing ruby screencast
+---
+
+In my previous post I already described how to do <a href="/2009/11/27/oracle-plsql-unit-testing-with-ruby/">Oracle PL/SQL unit testing with Ruby</a>. I now have named it as <a href="http://github.com/rsim/ruby-plsql-spec">ruby-plsql-spec</a> unit testing framework. But probably you didn't want to read such long text or maybe it seemed for you too difficult to try it out therefore I prepared two screencasts to show how easy and fun it is :)
+
+h3. Testing simple function
+
+The first example is based on classic <a href="http://utplsql.sourceforge.net/Doc/fourstep.html#step2">BETWNSTR function example from utPLSQL tutorial</a>.
+
+<div style="text-align:left;"><a href="http://ruby.lv/files/betwnstr.mov" title="Click to play..."><img src="/images/betwnstr.png" alt="betwnstr.png" border="0" width="400" height="300" /></a>
+
+<a href="http://ruby.lv/files/betwnstr.mov">Load screencast in QuickTime format (4.7 MB).</a></div>
+
+h3. Testing procedure that changes tables
+
+Second example is based on <a href="http://www.quest.com/code-tester-for-oracle/product-demo/chap02.htm">Quest Code Tester for Oracle testing tables demo screencast</a>. So you can see both unit testing frameworks in action and can compare which you like better :)
+
+<div style="text-align:left;"><a href="http://ruby.lv/files/rooms.mov" title="Click to play..."><img src="/images/rooms.png" alt="rooms.png" border="0" width="400" height="300" /></a>
+
+<a href="http://ruby.lv/files/rooms.mov">Load screencast in QuickTime format (8.1 MB).</a></div>
+
+h3. Test driven development
+
+In both these screencasts I demonstrated how to do <a href="http://en.wikipedia.org/wiki/Test-driven_development">test driven development</a> of PL/SQL
+
+* Write little test of indended functionality before writing code.
+* Write implementation of new functionality until this test passes and verify that all existing tests pass as well.
+* Refactor implementation when needed and verify that all tests still pass.
+
+From my experience TDD style of development can improve design and testability of code and also make you think before coding what you actually want to implement. But existing visual PL/SQL testing tools (Quest Code Tester, SQL Developer 2.1) do not quite support TDD style of development, they expect that there is already existing code that should be tested. Therefore this is one more ruby-plsql-spec advantage if you would like to do TDD style development in PL/SQL.
+
+h3. More information
+
+Examples shown in screencasts are available in <a href="http://github.com/rsim/ruby-plsql-spec">ruby-plsql-spec</a> GitHub repository. And if you want to see more examples how to use ruby-plsql library for PL/SQL unit testing then you can take a look at <a href="http://github.com/rsim/ruby-plsql/blob/master/spec/plsql/procedure_spec.rb">ruby-plsql own RSpec tests</a> or read <a href="/tags/ruby-plsql">previous posts about ruby-plsql</a>.

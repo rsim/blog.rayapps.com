@@ -1,0 +1,163 @@
+---
+layout: post
+title: ruby-plsql 0.4.2 - better support for object types and types in packages
+tags: ruby oracle plsql ruby-plsql
+---
+
+I just released <a href="http://github.com/rsim/ruby-plsql">ruby-plsql</a> version 0.4.2 which mainly adds support for more PL/SQL procedure parameter types. See <a href="http://github.com/rsim/ruby-plsql/blob/master/History.txt">change history</a> file for more detailed list of changes.
+
+h3. Object types and object methods
+
+Now you can use ruby-plsql to construct PL/SQL objects and call methods on these object. For example, if you have the following type defined:
+
+{% highlight sql %}
+CREATE OR REPLACE TYPE t_address AS OBJECT (
+  street    VARCHAR2(50),
+  city      VARCHAR2(50),
+  country   VARCHAR2(50),
+  CONSTRUCTOR FUNCTION t_address(p_full_address VARCHAR2)
+    RETURN SELF AS RESULT,
+  MEMBER FUNCTION display_address(p_separator VARCHAR2 DEFAULT ',') RETURN VARCHAR2,
+  MEMBER PROCEDURE set_country(p_country VARCHAR2),
+  STATIC FUNCTION create_address(p_full_address VARCHAR2) RETURN t_address
+);
+{% endhighlight %}
+
+Then you can construct PL/SQL objects and call methods on them:
+
+{% highlight ruby %}
+# call default constructor with named parameters
+address = plsql.t_address(:street => 'Street', :city => 'City', :country => 'Country')
+# call default constructor with sequential parameters
+address = plsql.t_address('Street', 'City', 'Country')
+# call custom constructor
+address = plsql.t_address('Street, City, Country')
+address = plsql.t_address(:p_full_address => 'Street, City, Country')
+
+# returned PL/SQL object is Hash object in Ruby
+address == {:street => 'Street', :city => 'City', :country => 'Country'}
+
+# but in addition you can call PL/SQL methods on it
+address.display_address == 'Street, City, Country'
+address.set_country('Other') == {:street => 'Street', :city => 'City', :country => 'Other'}
+
+# or you can call object member methods also with explicit self parameter
+plsql.t_address.display_address(:self => {:street => 'Street', :city => 'City', :country => 'Other'},
+  :p_separator => ',') == 'Street, City, Country'
+
+# or you can call static methods of type
+plsql.t_address.create_address('Street, City, Country') ==
+  {:street => 'Street', :city => 'City', :country => 'Country'}
+
+{% endhighlight %}
+
+h3. Record types and table of record types inside packages
+
+Now you can call Pl/SQL procedures with parameters which have record or table of record type that is defined inside PL/SQL package. For example if you have the following package:
+
+{% highlight sql %}
+CREATE OR REPLACE PACKAGE test_records IS
+  TYPE t_employee IS RECORD(
+    employee_id   NUMBER(15),
+    first_name    VARCHAR2(50),
+    last_name     VARCHAR2(50),
+    hire_date     DATE
+  );
+  TYPE t_employees IS TABLE OF t_employee;
+  TYPE t_employees2 IS TABLE OF t_employee
+    INDEX BY BINARY_INTEGER;
+  FUNCTION test_employee (p_employee IN t_employee)
+    RETURN t_employee;
+  FUNCTION test_employees (p_employees IN t_employees)
+    RETURN t_employees;
+  FUNCTION test_employees2 (p_employees IN t_employees2)
+    RETURN t_employees2;
+END;
+{% endhighlight %}
+
+Then you can call these package functions from Ruby:
+
+{% highlight ruby %}
+employee = {
+  :employee_id => 1,
+  :first_name => 'First',
+  :last_name => 'Last',
+  :hire_date => Time.local(2010,2,26)
+}
+# PL/SQL record corresponds to Ruby Hash
+plsql.test_records.test_employee(employee) == employee
+# PL/SQL table corresponds to Ruby Array
+plsql.test_records.test_employees([employee, employee]) == [employee, employee]
+# PL/SQL index-by table corresponds to Ruby Hash
+plsql.test_records.test_employees({1 => employee, 2 => employee}) == {1 => employee, 2 => employee}
+
+{% endhighlight %}
+
+If you will use table types defined inside PL/SQL packages then ruby-plsql will dynamically create session specific temporary tables which will be used to pass and get table parameter values. To ensure that these session specific temporary tables will be dropped you need to explicitly call @plsql.logoff@ to close connection. For example, if you use <a href="http://github.com/rsim/ruby-plsql-spec">ruby-plsql-spec</a> for PL/SQL unit testing then in spec_helper.rb include
+
+{% highlight ruby %}
+at_exit do
+  plsql.logoff
+end
+
+{% endhighlight %}
+
+to ensure that connection will be closed with @plsql.logoff@ before Ruby script will exit. But in case of some script failure if this was not executed and you notice that there are temporary tables with RUBY_ prefix in your schema then you can call @plsql.connection.drop_all_ruby_temporary_tables@ to drop all temporary tables.
+
+h3. Establish new connection
+
+Now there is simpler @connect!@ method how to establish new ruby-plsql connection when you need a new connection just for ruby-plsql needs. You can do it in several ways:
+
+{% highlight ruby %}
+plsql.connect! username, password, database_tns_alias
+plsql.connect! username, password, :host => host, :port => port, :database => database
+plsql.connect! :username => username, :password => password, :database => database_tns_alias
+plsql.connect! :username => username, :password => password, :host => host, :port => port, :database => database
+
+{% endhighlight %}
+
+And the good thing is that this method will work both with MRI 1.8 or 1.9 or with JRuby - you do not need to change the way how you are establishing connection to database.
+
+h3. Savepoints
+
+Now there is simpler way how to define savepoints and how to rollback to savepoint:
+
+{% highlight ruby %}
+plsql.savepoint "before_something"
+plsql.rollback_to "before_something"
+
+{% endhighlight %}
+
+h3. Check validity of database objects
+
+Now ruby-plsql will check if referenced database object is valid before trying to call it. And if it will not be valid then corresponding compilation error will be displayed. For example, if you have invalid database object:
+
+{% highlight sql %}
+CREATE OR REPLACE FUNCTION test_invalid_function(p_dummy VARCHAR2) RETURN VARCHAR2 IS
+  l_dummy invalid_table.invalid_column%TYPE;
+BEGIN
+  RETURN p_dummy;
+END;
+
+{% endhighlight %}
+
+then when trying to call it
+
+{% highlight ruby %}
+plsql.test_invalid_function('dummy')
+
+{% endhighlight %}
+
+you will get the following error message:
+
+{% highlight text %}
+ArgumentError: Database object 'HR.TEST_INVALID_FUNCTION' is not in valid status
+Error on line    2:   l_dummy invalid_table.invalid_column%TYPE;
+     position   11: PLS-00201: identifier 'INVALID_TABLE.INVALID_COLUMN' must be declared
+     position   11: PL/SQL: Item ignored
+
+{% endhighlight %}
+
+h3. Other improvements
+
+See <a href="http://github.com/rsim/ruby-plsql/blob/master/History.txt">History.txt</a> file for other new features and improvements and see RSpec tests in <a href="http://github.com/rsim/ruby-plsql/tree/master/spec/plsql/">spec directory</a> for more usage examples.

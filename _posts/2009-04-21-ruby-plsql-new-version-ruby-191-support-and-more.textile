@@ -1,0 +1,78 @@
+---
+layout: post
+title: ruby-plsql new version - Ruby 1.9.1 support and more
+tags: ruby-plsql ruby oracle plsql
+---
+
+I have released <a href="http://github.com/rsim/ruby-plsql">ruby-plsql gem</a> (Ruby API for Oracle PL/SQL procedure calls) new version 0.3.0 which includes several new features.
+
+h3. Ruby 1.9.1
+
+Probably the most important is support for Ruby 1.9.1 - now you can use both <a href="http://blog.rayapps.com/2009/03/23/activerecord-oracle-enhanced-adapter-also-on-jruby-and-ruby-19/">Oracle enhanced adapter</a> and ruby-plsql gem on all three major Ruby plaforms:
+
+* MRI 1.8.6 with ruby-oci8 1.0.x library or gem
+* Ruby/YARV 1.9.1 with ruby-oci8 2.0 library or gem (currently just trunk version of ruby-oci8 2.0 contains the last bug fixes for Ruby 1.9.1)
+* JRuby (so far tested with 1.1.6) with JDBC Oracle driver
+
+h3. ActiveRecord connection
+
+In addition usage of ruby-plsql gem in Ruby on Rails project is simplified. Now you can include in environment.rb or some initializer file just:
+
+{% highlight ruby %}
+plsql.activerecord_class = ActiveRecord::Base
+
+{% endhighlight %}
+
+and you don't need to specify plsql.connection anymore - it will always use current ActiveRecord connection. This is also useful when ActiveRecord reestablishes connection to database as you don't need to reestablish plsql connection in this case.
+
+In addition if you use several different connections to Oracle database then you can assign to @plsql.activerecord_class@ also different class that inherits from @ActiveRecord::Base@ and has connection to different database.
+
+h3. Database time zone
+
+Also you can also specify in which timezone @DATE@ values are stored in database:
+
+{% highlight ruby %}
+plsql.default_timezone = :local
+
+{% endhighlight %}
+
+or
+
+{% highlight ruby %}
+plsql.default_timezone = :utc
+
+{% endhighlight %}
+
+This will affect how @DATE@ values (without timezone) will be converted to @Time@ or @DateTime@ values (with timezone), default selection is @:local@ timezone. If you have set @plsql.activerecord_class@ then the value will be taken from @ActiveRecord::Base.default_timezone@.
+
+h3. BLOB support
+
+You can now use @BLOB@ data type for input and output parameters and function return values.
+I remind you that also @NUMBER@, @VARCHAR2@, @DATE@, @TIMESTAMP@ and @CLOB@ data types are supported,
+
+h3. Synonym support
+
+Now you can also use private and public database synonyms to functions or procedures or packages.
+E.g. if @ORA_LOGIN_USER@ is public database synonym to @SYS.LOGIN_USER@ function then instead of
+
+{% highlight ruby %}
+plsql.sys.login_user
+
+{% endhighlight %}
+
+you can use
+
+{% highlight ruby %}
+plsql.ora_login_user
+
+{% endhighlight %}
+
+h3. Installation
+
+To install the gem as always do
+
+pre(terminal). sudo gem install ruby-plsql
+
+or call the correct gem command version for JRuby or Ruby 1.9.1.
+
+Source code of ruby-plsql is located at <a href="http://github.com/rsim/ruby-plsql">GitHub</a> where you can find usage examples in RSpec tests.

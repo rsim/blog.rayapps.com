@@ -1,0 +1,49 @@
+---
+layout: post
+title: Make Rails database migrations faster on Oracle
+tags: ruby rails oracle
+---
+
+When using Ruby on Rails on Oracle I noticed that my database migration tasks are much slower than on MySQL.
+
+I just found the cause for that - rake db:schema:dump task was taking very long time on my Oracle databases (and this task is executed at the end of rake db:migrate). As a result of this task Oracle Rails adapter is executing
+
+{% highlight sql %}
+SELECT LOWER(table_name) FROM user_tables
+{% endhighlight %}
+
+statement. If your database contains a lot of other schemas with a lot of tables (as in my case I deploy Rails user schema in Oracle E-Business Suite database) then this statement is quite slow (it took more than 10 seconds in my case).
+
+As all Rails tables are located in Rails user schema then you can get the same result with
+
+{% highlight sql %}
+SELECT LOWER(table_name) FROM all_tables WHERE owner = SYS_CONTEXT('userenv','session_user')
+{% endhighlight %}
+
+which now executes much faster than original statement.
+
+So you can make the following patch for Oracle Rails adapter to make this change
+
+{% highlight ruby %}
+module ActiveRecord
+  module ConnectionAdapters
+    class OracleAdapter
+      def tables(name = nil)
+        select_all("select lower(table_name) from all_tables where owner = sys_context('userenv','session_user')").inject([]) do | tabs, t |
+          tabs << t.to_a.first.last
+        end
+      end
+    end
+  end
+end
+{% endhighlight %}
+
+and include it in environment.rb file or in some separate patch file which you load at Rails startup.
+
+P.S. I have published <a href="http://svn.rayapps.com/lib/oracle_adapter_20_patch.rb">all my patches for Oracle Rails 2.0 adapter</a>. You can download this file, place it in Rails application lib directory and then just include
+
+{% highlight ruby %}
+require "oracle_adapter_20_patch"
+{% endhighlight %}
+
+in your environment.rb file. Look at comments in this file to find out what each patch is doing.

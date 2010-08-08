@@ -1,0 +1,25 @@
+---
+layout: post
+title: ruby-plsql gem now supports JRuby and Oracle JDBC driver
+tags: ruby-plsql ruby oracle plsql
+---
+
+Some time ago I created <a href="/2008/03/15/ruby-plsql-gem-simple-ruby-api-for-plsql-procedures/">ruby-plsql gem</a> which provides simple Ruby API for Oracle PL/SQL stored procedures.
+
+Initially this gem supported just MRI with ruby-oci8 library which provides connectivity to Oracle database as this was my main development and production environment for Ruby & Oracle applications. But as <a href="http://jruby.codehaus.org/">JRuby</a> is fast growing alternative Ruby deployment platform and as it can be integrated into Oracle Fusion middleware platform (e.g. <a href="https://mix.oracle.com/">Oracle Mix</a> is running on JRuby on Oracle Fusion middleware) then I planned to support JRuby as well.
+
+I started to work on JRuby support during <a href="http://headius.blogspot.com/2008/05/jruby-pre-railsconf-hackfest-on.html">RailsConf JRuby hackfest</a> and initially this did not seem very hard task for me. But as I did not know JDBC very well it took me much more time than initially planned. And unfortunately JDBC is also much less powerful compared to ruby-oci8 library for construction of dynamic PL/SQL calls. In addition I needed to strugle with Ruby and JDBC data type mappings which differs from Ruby and ruby-oci8 data type mappings.
+
+But finally I have completed JRuby support and released <a href="http://rubyforge.org/frs/?group_id=5816&release_id=23386">ruby-plsql gem version 0.2.0</a>. And good news are that from usage perspective ruby-plsql behaves identically on MRI and JRuby - at least my RSpec tests are telling so.
+
+To install this gem on JRuby execute
+
+pre(terminal). sudo jruby -S gem install ruby-plsql
+
+or
+
+pre(terminal). sudo jgem install ruby-plsql
+
+depending on how you have installed JRuby on your computer.
+
+Source code of ruby-plsql is located on <a href="http://github.com/rsim/ruby-plsql">GitHub</a> where you can find usage examples in RSpec tests.

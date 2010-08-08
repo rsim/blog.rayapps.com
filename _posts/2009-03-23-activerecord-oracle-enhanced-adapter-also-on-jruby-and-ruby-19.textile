@@ -1,0 +1,23 @@
+---
+layout: post
+title: ActiveRecord Oracle enhanced adapter also on JRuby and Ruby 1.9
+tags: oracle_enhanced ruby rails oracle
+---
+
+So far if you wanted to use Ruby on Rails on Oracle database you needed to use different adapters depending on the Ruby platform that you wanted to use. If you used original MRI (Matz Ruby interpreter) 1.8.6 then hopefully you were using Oracle enhanced adapter. But if you wanted to use JRuby then you needed to use JDBC adapter that is maintained by JRuby team (and which sometimes might work differently than Oracle enhanced adapter). And if you wanted to use new Ruby 1.9.1 then you were out of luck as no adapter supported it.
+
+Therefore I wanted to announce great news that *ActiveRecord Oracle enhanced adapter 1.2.0 is released* and it supports *all three major Ruby platforms!*
+
+* Use Oracle enhanced adapter on MRI 1.8.6 with ruby-oci8 1.0.x library or gem
+* Use Oracle enhanced adapter on JRuby (so far tested with 1.1.6) with JDBC Oracle driver
+* Use Oracle enhanced adapter on Ruby/YARV 1.9.1 with ruby-oci8 2.0 library or gem
+
+This provides you with much more flexibility to develop on one Ruby platform but deploy on another and on all three platforms you can use <a href="http://wiki.github.com/rsim/oracle-enhanced/usage">the same additional functionality</a> that Oracle enhanced adapter provides on top of standard ActiveRecord functionality.
+
+And during testing of Oracle enhanced adapter on all platforms additional milestone was achieved - *Oracle enhanced adapter passes 100% ActiveRecord unit tests!* But to be honest I need to tell that I needed to patch quite many unit tests for Oracle specifics as not all SQL that runs on MySQL is also valid on Oracle. I published my patched branch of ActiveRecord unit tests at my <a href="http://github.com/rsim/rails/tree/oracle_enhanced">GitHub fork of Rails</a> - you can clone the repository and verify by yourself.
+
+So please try out new version of Oracle enhanced adapter on any Ruby platform:
+
+pre(terminal). gem install activerecord-oracle_enahnced-adapter
+
+If you have any questions please use <a href="http://groups.google.com/group/oracle-enhanced">discussion group</a> or post comments here. In nearest future I will also add more instructions how to install Oracle enhanced adapter on JRuby and Ruby 1.9.1 at <a href="http://wiki.github.com/rsim/oracle-enhanced">GitHub wiki page</a>.

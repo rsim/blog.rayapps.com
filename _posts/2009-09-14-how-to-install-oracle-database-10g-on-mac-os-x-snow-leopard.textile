@@ -1,0 +1,351 @@
+---
+layout: post
+title: How to install Oracle Database 10g on Mac OS X Snow Leopard
+tags: oracle database mac
+---
+
+<img src="/images/sl_oracle.jpg" alt="sl_oracle.jpg" border="0" width="250" height="133" align="right">Oracle Database 10g is not yet officially supported on new Mac OS X 10.6 Snow Leopard but thanks to comments at my <a href="http://blog.rayapps.com/2009/04/12/how-to-install-oracle-database-10g-on-mac-os-x-intel/">previous tutorial</a> I managed to do Oracle 10g installation on fresh Mac OS X Snow Leopard.
+
+If you have upgraded from Leopard with Oracle 10g installation to Snow Leopard then most probably Oracle 10g should work fine and you should not do anything. These instructions are just for fresh installation of Snow Leopard.
+
+And also please take in mind that Oracle 10g on Snow Leopard is not supported yet by Oracle and therefore please do not run critical production applications on it :)
+
+So here are my updated Oracle 10g installation instructions for Snow Leopard.
+
+h3. Initial preparation
+
+At first you need Xcode tools installed on your Mac OS X.
+
+Then you need to create oracle user as well as increase default kernel parameters. Open Terminal and switch to root user:
+
+pre(terminal). sudo -i
+
+Create oinstall group and oracle user (I used group and user number 600 to ensure that they do not collide with existing groups and users):
+
+pre(terminal). dscl . -create /groups/oinstall
+dscl . -append /groups/oinstall gid 600
+dscl . -append /groups/oinstall passwd "*"
+dscl . -create /users/oracle
+dscl . -append /users/oracle uid 600
+dscl . -append /users/oracle gid 600
+dscl . -append /users/oracle shell /bin/bash
+dscl . -append /users/oracle home /Users/oracle
+dscl . -append /users/oracle realname "Oracle software owner"
+mkdir /Users/oracle
+chown oracle:oinstall /Users/oracle
+
+Change password for oracle user:
+
+pre(terminal). passwd oracle
+
+Change default kernel parameters:
+
+pre(terminal). vi /etc/sysctl.conf
+
+and enter values recommended by Oracle:
+
+{% highlight text %}
+kern.sysv.semmsl=87381
+kern.sysv.semmns=87381
+kern.sysv.semmni=87381
+kern.sysv.semmnu=87381
+kern.sysv.semume=10
+kern.sysv.shmall=2097152
+kern.sysv.shmmax=2197815296
+kern.sysv.shmmni=4096
+kern.maxfiles=65536
+kern.maxfilesperproc=65536
+net.inet.ip.portrange.first=1024
+net.inet.ip.portrange.last=65000
+kern.corefile=core
+kern.maxproc=2068
+kern.maxprocperuid=2068
+{% endhighlight %}
+
+Oracle DB installation scripts have reference to Java version 1.4.2 which is not present on Snow Leopard. The easiest way to fix it is to create symbolic link to newer version of Java:
+
+pre(terminal). sudo ln -s /System/Library/Frameworks/JavaVM.framework/Versions/1.5.0 /System/Library/Frameworks/JavaVM.framework/Versions/1.4.2
+
+After this reboot your computer so that these new kernel parameters would be taken into effect.
+
+After reboot you need to log in as new "Oracle software owner" user (as now Snow Leopard has stricter control for access to X11 display and therefore I couldn't manage to start Oracle installation just from terminal).
+
+Open Terminal application and set shell settings in .bash_profile
+
+pre(terminal). vi .bash_profile
+
+and enter
+
+{% highlight sh %}
+export DISPLAY=:0.0
+export ORACLE_BASE=$HOME
+umask 022
+ulimit -Hn 65536
+ulimit -Sn 65536
+{% endhighlight %}
+
+As you see I prefer to install all Oracle related files under home directory of oracle user therefore I am setting ORACLE_BASE to home directory. And also include ulimit settings - I forgot to do this initially and got strange TNS service errors because of that.
+
+Now execute this script so that these settings are applied to current shell:
+
+pre(terminal). . ./.bash_profile
+
+Now download <a href="http://www.oracle.com/technology/software/products/database/oracle10g/htdocs/10204macsoft_x86-64.html">db.zip installation archive</a> and place it somewhere and unzip it:
+
+pre(terminal). mkdir Install
+cd Install
+# download db.zip to this directory
+unzip db.zip
+cd db/Disk1
+
+Now you are ready to start installation. In Snow Leopard you need to pass -J-d32 option to installation script to force to run Java in 32-bit mode as some native libraries are 32-bit:
+
+pre(terminal). ./runInstaller -J-d32
+
+h3. Installation
+
+In installation wizard I selected the following options:
+
+* Standard Edition - as I don't need additional features of Enterprise Edition
+* Install Software Only - we will need to do some fixes before database creation
+
+In the middle of installation you will get error message "Error in invoking target 'all_no_orcl ipc_g ihsodbc32' ..." (message truncated). Please do not press anything and switch to Terminal application.
+
+pre(terminal). cd ~/oracle/product/10.2.0/db_1/rdbms/lib
+vi ins_rdbms.mk
+
+and in this file you need to search for line containing @HSODBC_LINKLINE@ (in vi enter @/HSODBC_LINKLINE@) and comment out this line with putting @# @ in front of it:
+
+{% highlight text %}
+#	$(HSODBC_LINKLINE)
+{% endhighlight %}
+
+and save changed file.
+
+In this way we disable failing compilation of library which is anyway not needed for our Oracle DB installation.
+
+After that you can switch back to Oracle installation application and press Retry.
+
+At the end of installation you will be instructed to run one shell script from root. To do that open new tab in Terminal and execute (substitute "username" with your login name):
+
+pre(terminal). su - username
+sudo /Users/oracle/oracle/product/10.2.0/db_1/root.sh
+
+Hopefully installation will complete successfully.
+
+h3. Creation of database
+
+Switch back to Terminal tab with oracle user and add the following lines to .bash_profile of oracle user:
+
+{% highlight sh %}
+export ORACLE_HOME=/Users/oracle/oracle/product/10.2.0/db_1
+export DYLD_LIBRARY_PATH=$ORACLE_HOME/lib
+export ORACLE_SID=orcl
+PATH=$PATH:$ORACLE_HOME/bin
+{% endhighlight %}
+
+and execute it
+
+pre(terminal). . ~/.bash_profile
+
+Now you need to modify @$ORACLE_HOME/jdk/bin/java@ script and change @...java -Xbootclasspath...@ to @...java -d32 -Xbootclasspath...@. This is necessary to force netca and dbca utilities to run in 32-bit mode.
+
+Now you need to do the major installation hack :) Unfortunately the main oracle executable binary when compiled under Snow Leopard is giving core dumps when starting Oracle database and currently the only way how I managed to fix it is to replace this executable file with the one which was compiled previously under Leopard. So you need to download it in trust me that it is correct :)
+
+pre(terminal). cd $ORACLE_HOME/bin
+curl -O http://rayapps.com/downloads/oracle_se.zip
+unzip oracle_se.zip
+chmod ug+s oracle
+rm oracle_se.zip
+
+(If you installed Oracle Enterprise Edition then please substitute @oracle_se.zip@ with @oracle_ee.zip@)
+
+Now you can run Network Configuration Assistant
+
+pre(terminal). netca
+
+and select all default options to create listener and wait until you get confirmation message that listener is configured and started.
+
+After that you can run Database Configuration Assistant
+
+pre(terminal). dbca
+
+and select
+
+* Create a Database
+* General Purpose
+* Specify orcl as Global Database Name and SID (or set it to something different if you need)
+* Specify password for SYS and SYSTEM users
+* I selected also Sample Schemas
+* and in Character Sets I selected Use Unicode (AL32UTF8)
+
+At the end of installation I tried to use Password Management to unlock additional schemas but it didn't work - so you need to unlock other sample schemas if needed using sqlplus.
+
+At the end of installation verify if you can connect to newly created database
+
+pre(terminal). sqlplus system@orcl
+
+I hope that my fixes will help you as well and you will be able to connect to database.
+
+If you want to unlock other sample users then do it from sqlplus, e.g.:
+
+{% highlight sql %}
+alter user hr account unlock identified by hr;
+{% endhighlight %}
+
+Further instructions are the same as for Leopard and there are no more changes.
+
+h3. Change listener to listen on localhost
+
+As I need this Oracle database just as local development database on my computer then I want to change the listener so that it would listen just on localhost port 1521:
+
+pre(terminal). vi $ORACLE_HOME/network/admin/listener.ora
+
+and change it to:
+
+{% highlight text %}
+SID_LIST_LISTENER =
+  (SID_LIST =
+    (SID_DESC =
+      (SID_NAME = PLSExtProc)
+      (ORACLE_HOME = /Users/oracle/oracle/product/10.2.0/db_1)
+      (PROGRAM = extproc)
+    )
+    (SID_DESC =
+      (SID_NAME = orcl)
+      (ORACLE_HOME = /Users/oracle/oracle/product/10.2.0/db_1)
+    )
+  )
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC0))
+    )
+  )
+{% endhighlight %}
+
+Then also change ORCL alias definition in @$ORACLE_HOME/network/admin/tnsnames.ora@ to:
+
+{% highlight text %}
+ORCL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = orcl)
+    )
+  )
+{% endhighlight %}
+
+After this change restart listener and try to connect with sqlplus to verify that these changes are successful.
+
+h3. Automatic startup of Oracle database
+
+If you want that Oracle database is started automatically when your computer is booted then you need to create the following startup script. Start terminal and switch to root.
+
+At first edit @/etc/oratab@ and change N to Y at the end of line for ORCL database - this will be used by @dbstart@ utility to find which databases should be started automatically.
+
+Then create startup script for Oracle database:
+
+pre(terminal). mkdir /Library/StartupItems/Oracle
+cd /Library/StartupItems/Oracle
+vi Oracle
+
+and enter the following:
+
+{% highlight sh %}
+#!/bin/sh
+
+# Suppress the annoying "$1: unbound variable" error when no option
+# was given
+if [ -z $1 ] ; then
+  echo "Usage: $0 [start|stop|restart] "
+  exit 1
+fi
+
+# source the common startup script
+. /etc/rc.common
+
+# Change the value of ORACLE_HOME to specify the correct Oracle home
+# directory for the installation
+ORACLE_HOME=/Users/oracle/oracle/product/10.2.0/db_1
+DYLD_LIBRARY_PATH=$ORACLE_HOME/lib
+export ORACLE_HOME DYLD_LIBRARY_PATH
+
+# change the value of ORACLE to the login name of the
+# oracle owner at your site
+ORACLE=oracle
+
+PATH=$PATH:$ORACLE_HOME/bin
+
+# Set shell limits for the Oracle Database
+ulimit -Hu 2068
+ulimit -Su 2068
+ulimit -Hn 65536
+ulimit -Sn 65536
+
+StartService()
+{
+  ConsoleMessage "Starting Oracle Databases"
+  su $ORACLE -c "$ORACLE_HOME/bin/dbstart $ORACLE_HOME"
+}
+
+StopService()
+{
+  ConsoleMessage "Stopping Oracle Databases"
+  su $ORACLE -c "$ORACLE_HOME/bin/dbshut $ORACLE_HOME"
+}
+
+RestartService()
+{
+  StopService
+  StartService
+}
+
+RunService "$1"
+{% endhighlight %}
+
+and then make this script executable
+
+pre(terminal). chmod a+x Oracle
+
+and in addition create properties file:
+
+pre(terminal). vi StartupParameters.plist
+
+with the following contents:
+
+{% highlight text %}
+{
+  Description     = "Oracle Database Startup";
+  Provides        = ("Oracle Database");
+  Requires        = ("Disks");
+  OrderPreference = "None";
+}
+{% endhighlight %}
+
+Now you can verify that these scripts are working. Open new terminal and try
+
+pre(terminal). sudo /Library/StartupItems/Oracle/Oracle stop
+
+to stop the database and
+
+pre(terminal). sudo /Library/StartupItems/Oracle/Oracle start
+
+to start again the database. And later you can reboot your computer also to verify that Oracle database will be started automatically.
+
+h3. Hide oracle user from login window
+
+After computer reboot you probably noticed that now you got oracle user in initial login window. To get rid of it execute this from terminal:
+
+pre(terminal). sudo defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add oracle
+
+h3. What next?
+
+Now when you have Oracle database installed you would need some development tools that you could use to access the database. Here are some links:
+
+* <a href="http://www.oracle.com/technology/products/database/sql_developer/index.html">Oracle SQL Developer</a> - free Oracle GUI tool that supports Mac OS X as well
+* If you would like to use Ruby and Ruby on Rails then check out my tutorial <a href="http://blog.rayapps.com/2009/09/06/how-to-setup-ruby-and-oracle-instant-client-on-snow-leopard/">how to setup Ruby and Oracle client on Snow Leopard</a>
+
+Please comment if you find any issues with Oracle Database 10g installation on Snow Leopard using this tutorial.

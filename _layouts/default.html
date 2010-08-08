@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+   <title>{{ page.title }}</title>
+   <meta name="author" content="Raimonds Simanovskis" />
+   <link href="http://feeds.feedburner.com/rayapps_blog" rel="alternate" title="rayapps_blog" type="application/atom+xml" />
+
+   <!-- syntax highlighting CSS -->
+   <link rel="stylesheet" href="/css/syntax.css" type="text/css" />
+
+   <!-- Homepage CSS -->
+   <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen, projection" />
+
+</head>
+<body>
+
+<div id="rap">
+  <h1 id="header">
+    <a href="/">Ray::Apps.blog</a>
+  </h1>
+
+  <div id="content">
+    {{ content }}
+  </div>
+
+  <!-- begin sidebar --> 
+  <div id="sidebar">
+    {% include sidebar.html %}
+  </div>
+
+</div>
+
+<a href="http://github.com/rsim"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" /></a>
+
+<!-- Google Analytics -->
+<!-- Google Analytics end -->
+
+</body>
+</html>

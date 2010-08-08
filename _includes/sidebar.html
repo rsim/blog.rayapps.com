@@ -1,0 +1,27 @@
+<p>
+  <a href="http://apex.oracle.com/pls/otn/f?p=19297:4:1971505610653388::NO:4:P4_ID:263">
+    <img src="http://www.oracle.com/technology/community/oracle_ace/oracle_ace_blk.gif" title="Oracle ACE"/>
+  </a>
+</p>
+<p>
+  <a href="http://www.workingwithrails.com/recommendation/new/person/16493-raimonds-simanovskis">
+    <img src="http://workingwithrails.com/images/tools/compact-small.jpg" title="Recommend Me"/>
+  </a>
+</p>
+
+<h2>Tags</h2>
+<p>
+  {% include tag_cloud.html %}
+</p>
+
+<h2>Recent posts</h2>
+<ul class="posts">
+  {% for post in site.posts limit:5 %}
+    <li><a href="{{ post.url }}">{{ post.title }}</a>
+      <br/><span class="date">{{ post.date | date: "%b %d, %Y" }}</span>
+    </li>
+  {% endfor %}
+</ul>
+
+
+<h2>Recent comments</h2>

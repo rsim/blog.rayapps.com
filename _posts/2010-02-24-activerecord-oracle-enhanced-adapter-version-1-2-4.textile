@@ -1,0 +1,55 @@
+---
+layout: post
+title: ActiveRecord Oracle enhanced adapter version 1.2.4
+tags: oracle_enhanced ruby rails oracle
+---
+
+I have released maintenance version of ActiveRecrod <a href="http://github.com/rsim/oracle-enhanced">Oracle enhanced adapter</a> with some bug fixes and some new features. This is the last maintenance version for Rails 2, I have already done majority of work to support also Rails 3 in next adapter versions, but that deserves another post when it will be ready :).
+
+Detailed changes can be found in <a href="http://github.com/rsim/oracle-enhanced/blob/master/History.txt">change history file</a> and commit log, here I will point out the main changes.
+
+h3. Schema and structure dump
+
+There are several improvements in schema (@rake db:schema:dump@) and structure dump (@rake db:structure:dump@) tasks. Now structure dump is improved to contain all schema objects in SQL statements format.
+
+Also @db:test:purge@ rake task (which is run before recreating test schema when running rake test or rake spec) is changed that it will delete all schema objects from test schema - including also views, packages, procedures and functions which are not recreated from schema.rb. So if you need to have additional database objects in your schema besides tables, indexes, sequences and synonyms (which are dumped in schema.rb) then you need to recreate them after standard rake task @db:schema:load@ is run. Here is example how to execute any additional tasks after @db:schema:load@ (include this in some .rake file in lib/tasks directory):
+
+{% highlight ruby %}
+namespace :db do
+  namespace :schema do
+    task :load do
+      Rake::Task["db:schema:create_other_objects"].invoke
+    end
+    task :create_other_objects do
+      # include code here which creates necessary views, packages etc.
+    end
+  end
+end
+
+{% endhighlight %}
+
+h3. Additional options for schema definition methods
+
+You can pass @:temporary => true@ option for @create_table@ method to create temporary tables.
+
+You can use @:tablespace => "tablespace name"@ option for @add_index@ method to create index in non-default Oracle tablespace that is specified for user (e.g. if it is requested by your DBA for performance reasons). You can also define function based indexes using add_index and they will be correctly dumped in schema.rb.
+
+h3. Savepoints and nested ActiveRecord transactions
+
+oracle_enhanced adapter now supports <a href="http://weblog.rubyonrails.org/2009/1/16/this-week-in-edge-rails">ActiveRecord nested transactions</a> using database savepoints.
+
+h3. ruby-oci8 version
+
+As I am using and testing oracle_enhanced adapter just with *ruby-oci8 2.0.3* then I have made this as precondition (if you use MRI 1.8 or 1.9). So if you haven't yet upgraded to latest ruby-oci8 version then please do so before upgrading to oracle_enhanced 1.2.4.
+
+h3. JNDI connection support
+
+If you are using oracle_enhanced with JRuby then now you can also use JNDI database connections - please see this <a href="http://github.com/rsim/oracle-enhanced/issues#issue/6">issue with comments</a> to see some examples.
+
+h3. Install
+
+As always you can install Oracle enhanced adapter on any Ruby platform (Ruby 1.8.6 / 1.8.7 or Ruby 1.9.1 or JRuby) with
+
+pre(terminal). gem install activerecord-oracle_enhanced-adapter
+
+If you have any questions please use <a href="http://groups.google.com/group/oracle-enhanced">discussion group</a> or post comments here.

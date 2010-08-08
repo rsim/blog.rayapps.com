@@ -1,0 +1,118 @@
+---
+layout: post
+title: How to setup Ruby and Oracle client on Intel Mac
+tags: ruby oracle mac
+---
+
+bq(warning). UPDATE: <a href="http://blog.rayapps.com/2008/04/24/how-to-setup-ruby-and-new-oracle-instant-client-on-leopard/">New version of this instruction for Intel Macs with Leopard is available here.</a>
+<a href="http://blog.rayapps.com/2009/09/06/how-to-setup-ruby-and-oracle-instant-client-on-snow-leopard/">New version of instructions for Snow Leopard is available here.</a>
+
+h3. Introduction
+
+I have been using Oracle technologies for many years but just some time ago discovered Ruby and Rails. As I had ideas how to make Ruby on Rails frontends for existing Oracle based systems I started to explore how to use Ruby on Rails together with Oracle databases.
+
+Just recently I switched from PC notebook to MacBook Pro and unfortunately found out that <a href="http://forums.oracle.com/forums/thread.jspa?threadID=481059">Oracle Instant Client is not yet released for Intel Macs</a>. As there is no promise when it will be released and as I could not wait for that I decided to make old <a href="http://www.oracle.com/technology/software/tech/oci/instantclient/htdocs/macsoft.html">PowerPC version of Oracle Instant Client</a> to run on Intel Mac.  As I didn't find any good description how to do that I decided to write description of it by myself - hopefully it will help others.
+h3. Universal or "fat" binary Ruby
+
+The first thing is that you need to get "universal" or "fat" binary installation of Ruby - it means that it contains both Intel and PowerPC (PPC) binary code. You will need PPC version of Ruby when you will work with Oracle and you will need Intel version of Ruby when you will do other things. PPC code is running in emulation mode on Intel processors and therfore is slower as well as there are some compatibility issues with some other libraries (I will mention later what issues I found out).
+
+It is possible to get and install precompiled Ruby either from <a href="http://www.macports.org/">MacPorts</a> or using <a href="http://rubyosx.rubyforge.org/">Ruby One-Click Installer</a>. But I prefer to compile Ruby from source code as it gives me more control what is installed and where. I used <a href="http://hivelogic.com/narrative/articles/ruby-rails-mongrel-mysql-osx">Hivelogic guide</a> to compile Ruby from source code.
+
+Here are my additional notes what I changed to Hivelogic guide to make "fat" binaries.
+
+h3. Installing "readline"
+
+At first you need to install "readline" shared libraries. At first I tried to make them from "readline" library source code but I always got just Intel binaries. Therefore I found and downloaded "readline" library <a href="http://downloads.sourceforge.net/rudix/readline-5.2-8universal.dmg?modtime=1185921225&big_mirror=0">installer package</a> with universal binaries and installed it. If you previously installed Intel binary of "readline" library then it is better to restart Mac to ensure that new dynamic library will be loaded.
+
+h3. Compiling Ruby
+
+Next you need to download and extract Ruby 1.8.6 source code.
+
+Before running "configure" command I made the following change in "configure" file:
+
+{% highlight ruby %}
+# Choose a default set of architectures based upon platform.
+case "$target_os" in
+darwin*)
+    TARGET_ARCHS="*ppc i386*"
+    ;;
+{% endhighlight %}
+
+You can specify this also on command line but this change ensures that you will not forget it :) Then you need to run "configure" script with additional parameter at the end:
+
+pre(terminal). ./configure --prefix=/usr/local --enable-pthread --with-readline-dir=/usr/local \
+--enable-shared --enable-fat-binary
+
+After running "make" hopefully you will get everything compiled and you should get "fat" ruby binary. You can verify it with the following command and should see the following result:
+
+pre(terminal). $ file ruby
+ruby: Mach-O universal binary with 2 architectures
+ruby (for architecture ppc):    Mach-O executable ppc
+ruby (for architecture i386):   Mach-O executable i386
+
+If you do not see that ruby binary contains both ppc and i386 executables then something went wrong. If it is OK then you can do "sudo make install" to install binaries in target directories.
+
+h3. Make PPC and "fat" versions of Ruby
+
+As you will need to be able to force to run PPC version of Ruby later then we need to extract PPC executable in a separate file and store original "fat" binary in another file:
+
+pre(terminal). ditto -arch ppc /usr/local/bin/ruby /usr/local/bin/ruby_ppc
+mv /usr/local/bin/ruby /usr/local/bin/ruby_fat
+
+Then I recommend to create simple scripts that will help you to switch between "fat" and PPC versions of Ruby:
+
+ppc_ruby.sh:
+
+{% highlight sh %}
+#!/bin/bash
+sudo ln -fs /usr/local/bin/ruby_ppc /usr/local/bin/ruby
+{% endhighlight %}
+
+fat_ruby.sh:
+
+{% highlight ruby %}
+#!/bin/bash
+sudo ln -fs /usr/local/bin/ruby_fat /usr/local/bin/ruby
+{% endhighlight %}
+
+So when you need to have PPC version of Ruby then run "ppc_ruby.sh" script and when you need "fat" version (which will actually run Intel binary) then run "fat_ruby.sh" script.
+
+h3. Install Oracle Instant Client for PPC
+
+Install Oracle Instant Client according to the <a href="http://creativi.st/blog/articles/2005/06/25/rails-oracle-client-on-mac-os-x">following description</a>.
+
+h3. Compile and install ruby-oci8
+
+I used the <a href="http://blog.sven-tissot.de/files/ror_and_oracle.html">following description</a> as a basis but some additional changes were needed for ruby-oci8-1.0.0-rc3 compilation.
+
+Open ruby-oci8 README file and find section "=== Intel Mac"  where are described what to do to compile ruby-oci8 on Intel Mac.
+
+Before running any ruby scripts you need to run ppc_ruby.sh script to switch to PPC binary.
+
+If you compiled "fat" Ruby from source code then you need to modify file /usr/local/lib/ruby/1.8/fat-darwin8.10.1/rbconfig.rb according to README file (make backup of file before modifications). If you installed Ruby from binary distribution then find where is located your rbconfig.rb file.
+
+* find lines with CONFIG["CFLAGS"] and CONFIG["LDFLAGS"] and CONFIG["ARCH_FLAG"]
+* remove "-arch i386" if present (was not present in my case)
+* and add "-arch ppc" to all of these lines.
+
+Make and install ruby-oci8 and if it finishes successfully then restore rbconfig.rb file from backup.
+
+Try
+
+pre(terminal). ruby -r oci8 -e "OCI8.new('scott', 'tiger','orcl').exec('select * from emp') do |r| puts r.join(','); end"
+
+or similar to verify that you can access Oracle database from ruby.
+
+Congratulations! You have managed to connect to Oracle DB from Ruby on Intel Mac! If you got some issues at some point then please write it in comments and I will try to help with that.
+
+h3. Post installation notes
+
+If you previously installed (or if you will install in future) any Ruby gems with native extensions (e.g. Mongrel or MySQL C API) then you need to reinstall these gems with "fat" Ruby (i.e. running "fat_ruby.sh" script and then "sudo gem install"). It will ensure that all gems will also have "fat" native extensions so that you can run them both in PPC Ruby and Intel Ruby.
+
+h3. Known issues with PPC Ruby
+
+So far I have got the following issues with running PPC version of Ruby:
+
+* Capistrano is failing to make SSH connection when running in PPC Ruby (I was testing with new Capistrano 2.0). Therefore you need always to switch to "fat" Ruby before running "cap deploy".
+* As I also wanted that MySQL is running under PPC I got some issues with MySQL native extensions compilation - I solved them using the <a href="http://www.fatmixx.com/2007/05/30/ruby-mysql-gem-error/">following description</a>.
+* ruby-ldap connections were failing when running  in PPC Ruby within Ruby on Rails. I managed to fix it by putting "require ldap" as a first line in config/environment.rb file.

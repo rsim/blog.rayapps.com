@@ -1,0 +1,11 @@
+---
+layout: post
+title: My presentation on using Ruby with Oracle at Euruko conference
+tags: ruby conference oracle
+---
+
+I gave short presentation about "Using Ruby with Oracle" at European Ruby conference <a href="http://www.euruko2008.org/">Euruko 2008</a>. You can <a href="http://www.euruko2008.org/system/assets/documents/0000/0009/simanovskis-using-ruby-with-oracle-euruko2008.pdf">download presentation slides at their site</a>. My collegue took a video of my presentation so probably after some time I will post it as well :)
+
+Either because of this presentation or maybe just because more people are interested in Ruby on Oracle the number of visits to this blog is fast growing during the last days. Which makes me more motivated to do more investigations in Ruby and Oracle area.
+
+One area of further research could be standardization of different ActiveRecord Oracle adapter patches - otherwise now I have different patches in each project and this becomes quite hard to manage.

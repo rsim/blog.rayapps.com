@@ -1,0 +1,56 @@
+---
+layout: post
+title: How to setup Ruby and Oracle Instant Client on Snow Leopard
+tags: ruby oracle mac
+---
+
+h3. Introduction
+
+Mac OS X Snow Leopard is out and many Rubyists are rushing to upgrade to it. The main difference for Ruby after upgrading to Snow Leopard is that Ruby installation has been changed from 32-bit to 64-bit program and version has changed from 1.8.6 to 1.8.7. And it means that all Ruby gems with C extensions should be reinstalled and recompiled using 64-bit external libraries.
+
+After upgrading to Snow Leopard the first thing to do is to follow <a href="http://weblog.rubyonrails.org/2009/8/30/upgrading-to-snow-leopard">instructions on official Ruby on Rails blog</a>. After that follow instructions below.
+
+h3. Installing 64-bit Oracle Instant Client for Intel Mac
+
+Download <a href="http://www.oracle.com/technology/software/tech/oci/instantclient/htdocs/intel_macsoft.html">Oracle Instant Client 64-bit version</a>. Download "Instant Client Package - Basic", "Instant Client Package - SDK" and "Instant Client Package - SQL*Plus".
+
+Unzip downloaded archives and move it where you would like to have it - I am keeping it in @/usr/local/oracle/instantclient_10_2@ (if you have previous 32-bit Oracle Instant Client in this directory then delete it beforehand). Then go to this directory and make symbolic links for dynamic libraries
+
+pre(terminal). sudo ln -s libclntsh.dylib.10.1 libclntsh.dylib
+sudo ln -s libocci.dylib.10.1 libocci.dylib
+
+Then I recommend to create and place somewhere your @tnsnames.ora@ file where you will keep your database connections definitions - I place this file in directory @/usr/local/oracle/network/admin@.
+
+Then finally you need to set up necessary environment variables - I place the following definitions in my @.bash_profile@ script:
+
+{% highlight sh %}
+export DYLD_LIBRARY_PATH="/usr/local/oracle/instantclient_10_2"
+export SQLPATH="/usr/local/oracle/instantclient_10_2"
+export TNS_ADMIN="/usr/local/oracle/network/admin"
+export NLS_LANG="AMERICAN_AMERICA.UTF8"
+export PATH=$PATH:$DYLD_LIBRARY_PATH
+{% endhighlight %}
+
+Use your path to Oracle Instant Client if it differs from @/usr/local/oracle/instantclient_10_2@. And as you see I also define @NLS_LANG@ environment variable - this is necessary if your database is not in UTF8 encoding but in Ruby you want to get UTF-8 encoded strings from the database. Specifying this NLS_LANG environment variable you will force that Oracle Instant Client will do character set translation.
+
+After these steps relaunch Terminal application (so that new environment variables are set), specify database connection in @tnsnames.ora@ file and try if you can access your database with @sqlplus@ from command line.
+
+h3. Install ruby-oci8 gem
+
+The latest versions of ruby-oci8 are available as Ruby gems and therefore I recommend to install it as a gem and not to compile and install as library (as I have recommended previously in my blog).
+
+If you previously installed ruby-oci8 as a library then I recommend to delete it from Ruby installation. Go to @/usr/lib/ruby/site_ruby/1.8@ directory and remove @oci8.rb@ file as well as remove @oci8lib.bundle@ compiled library from either @universal-darwin9.0@ or @universal-darwin10.0@ subdirectory.
+
+Now install ruby-oci8 with the following command:
+
+pre(terminal). sudo env DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH ARCHFLAGS="-arch x86_64" gem install ruby-oci8
+
+It is important to pass @DYLD_LIBRARY_PATH@ environment variable to sudo (as otherwise ruby-oci8 gem installation will not find Oracle Instant Client) as well as specify @ARCHFLAGS@ to compile C extension just for 64-bit platform as otherwise it will try to compile both for 32-bit and 64-bit platform.
+
+Now try
+
+pre(terminal). ruby -rubygems -e "require 'oci8'; OCI8.new('scott','tiger','orcl').exec('select * from dual') do |r| puts r.join(','); end"
+
+or similar (replacing username, password or database alias) to verify that you can access Oracle database from ruby.
+
+That's it! Please write in comments if something is not working according to these instructions.

@@ -1,0 +1,17 @@
+---
+layout: post
+title: Some positive drag-and-drop experience
+tags: oracle conference
+---
+
+In the <a href="/2008/09/22/coding-or-drag-and-droping/">previous post</a> I wrote that I didn't quite like drag-and-drop development style in JDeveloper that I experienced during Oracle OpenWorld hands-on session.
+
+<div style="text-align:center;"><img src="/images/oracle-bi.png" alt="oracle_bi.png" border="0" width="640" height="279" /></div>
+
+Today I was in <a href="http://www.oracle.com/technology/products/bi/enterprise-edition.html">Oracle BI Answers & Dashboard</a> hands-on session and during this session I was also drag-and-dropping to create reports, charts and business intelligence dashboards. But in this case I liked it as it seemed natural way how to create such reports.
+
+The main difference why I liked it was that I got immediate feedback how the end report will look like - after each change I could immediately see and test real report with real data. And such immediate feedback is key prerequisite for interactive analytical reporting development.
+
+In JDeveloper case I needed to compile and build everything and restart local application server after each change to see real results from any change - and it took at least 10 seconds for just sample "hello world" application. I assume that this lag will be even longer in larger real projects. Probably it is not so long time but when you compare it to 1 second feedback time then anything larger seems long.
+
+I also visited Oracle demo grounds where I discussed my concerns regarding JDeveloper drag-and-drop development style. At the end we reached common understanding that JDeveloper and ADF framework is really good for former Oracle Forms developers who do not want to learn HTML, CSS and Javascript and auto-generated applications could be quite OK for internal enterprise applications. But if you want to build advanced web applications you still need to learn and be expert in these web technologies (HTML, CSS and Javascript).

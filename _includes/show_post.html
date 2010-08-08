@@ -1,0 +1,14 @@
+<div class="post">
+  <h3 class="date">{{ post.date | date: "%B %d, %Y" }}</h3>
+  <h2 class="title"><a href="{{ post.url }}">{{ post.title }}</a></h2>
+  <div class="meta">
+    Posted by Raimonds Simanovskis,
+    tags:
+    {% for tag in post.tags %}
+      <a href="/tags/{{ tag }}" title="View posts tagged with &quot;{{ tag }}&quot;">{{ tag }}</a>{% if forloop.last != true %}, {% endif %}
+    {% endfor %}
+  </div>
+  <div class="body">
+    {{ post.content }}
+  </div>
+</div>

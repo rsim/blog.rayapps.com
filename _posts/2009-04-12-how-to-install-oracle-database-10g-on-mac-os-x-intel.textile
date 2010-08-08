@@ -1,0 +1,282 @@
+---
+layout: post
+title: How to install Oracle Database 10g on Mac OS X Intel
+tags: oracle database mac
+---
+
+bq(warning). UPDATE: <a href="http://blog.rayapps.com/2009/09/14/how-to-install-oracle-database-10g-on-mac-os-x-snow-leopard/">Created instructions how to install Oracle 10g on Mac OS X Snow Leopard</a>
+
+Couple days ago Oracle developers on Mac OS X received Easter present - finally <a href="http://www.oracle.com/technology/software/products/database/oracle10g/htdocs/10204macsoft_x86-64.html">Oracle Database 10g was released for Mac OS X 10.5 Intel platform</a>. This download includes installation guide for Mac OS X but as any Oracle installation guide it is quite long and contains a lot of unnecessary information for first time install as well as does not contain some necessary information.
+
+Therefore I am posting here my shorter tutorial how to install it. And this tutorial is targeted to developers who want to install local Oracle database for development needs on their MacBook, iMac or Mac Pro.
+
+h3. Initial preparation
+
+If you are a developer then I suppose you already have Xcode tools installed which are required also for Oracle installation. And I tried these steps on Mac OS X latest version 10.5.6.
+
+Then you need to create oracle user as well as increase default kernel parameters. Open Terminal and switch to root user:
+
+pre(terminal). sudo -i
+
+Create oinstall group and oracle user (I used group and user number 600 to ensure that they do not collide with existing groups and users):
+
+pre(terminal). dscl . -create /groups/oinstall
+dscl . -append /groups/oinstall gid 600
+dscl . -append /groups/oinstall passwd "*"
+dscl . -create /users/oracle
+dscl . -append /users/oracle uid 600
+dscl . -append /users/oracle gid 600
+dscl . -append /users/oracle shell /bin/bash
+dscl . -append /users/oracle home /Users/oracle
+dscl . -append /users/oracle realname "Oracle software owner"
+mkdir /Users/oracle
+chown oracle:oinstall /Users/oracle
+
+Change password for oracle user:
+
+pre(terminal). passwd oracle
+
+Change default kernel parameters:
+
+pre(terminal). vi /etc/sysctl.conf
+
+and enter values recommended by Oracle:
+
+pre(terminal). kern.sysv.semmsl=87381
+kern.sysv.semmns=87381
+kern.sysv.semmni=87381
+kern.sysv.semmnu=87381
+kern.sysv.semume=10
+kern.sysv.shmall=2097152
+kern.sysv.shmmax=2197815296
+kern.sysv.shmmni=4096
+kern.maxfiles=65536
+kern.maxfilesperproc=65536
+net.inet.ip.portrange.first=1024
+net.inet.ip.portrange.last=65000
+kern.corefile=core
+kern.maxproc=2068
+kern.maxprocperuid=2068
+
+After this reboot your computer so that these new kernel parameters would be taken into effect. After reboot open again Terminal and now login as oracle user:
+
+pre(terminal). su - oracle
+
+Set shell settings in .bash_profile
+
+pre(terminal). vi .bash_profile
+
+and enter
+
+pre(terminal). export DISPLAY=:0.0
+export ORACLE_BASE=$HOME
+umask 022
+ulimit -Hn 65536
+ulimit -Sn 65536
+
+As you see I prefer to install all Oracle related files under home directory of oracle user therefore I am setting ORACLE_BASE to home directory. And also include ulimit settings - I forgot to do this initially and got strange TNS service errors because of that.
+
+Now execute this script so that these settings are applied to current shell:
+
+pre(terminal). . ./.bash_profile
+
+Now download <a href="http://www.oracle.com/technology/software/products/database/oracle10g/htdocs/10204macsoft_x86-64.html">db.zip installation archive</a> and place it somewhere and unzip it:
+
+pre(terminal). mkdir Install
+cd Install
+# download db.zip to this directory
+unzip db.zip
+cd db/Disk1
+
+Now you are ready to start installation:
+
+pre(terminal). ./runInstaller
+
+h3. Installation
+
+In installation wizard I selected the following options:
+
+* Advanced Installation - so that I can change some default options
+* Standard Edition - as I don't need additional features of Enterprise Edition
+* Create Database / General Purpose
+* Global database name: orcl, SID: orcl
+* Character set: UTF-8 AL32UTF8
+* Create database with sample schemas
+* Selected "Use the same password for all the accounts" - do not specify default "manager" password as it will not be allowed :)
+* Password Management - selected this to unlock necessary sample accounts (e.g. HR schema account that I use as default test schema)
+
+At the end of installation you will be instructed to run one shell script from root.
+Hopefully installation will complete successfully.
+
+h3. Additional oracle user settings
+
+If you will use oracle user later then add the following lines to .bash_profile of oracle user:
+
+pre(terminal). export ORACLE_HOME=/Users/oracle/oracle/product/10.2.0/db_1
+export DYLD_LIBRARY_PATH=$ORACLE_HOME/lib
+export ORACLE_SID=ORCL
+PATH=$PATH:$ORACLE_HOME/bin
+
+After this relogin as oracle user and verify listener status:
+
+pre(terminal). lsnrctl status
+
+and if it is down then start it with
+
+pre(terminal). lsnrctl start
+
+and verify if you can connect to Oracle database with sample user (that I unlocked during installation)
+
+pre(terminal). sqlplus hr/hr@orcl
+
+If it fails then do some investigation :)
+
+h3. Change listener to listen on localhost
+
+As I need this Oracle database just as local development database on my computer then I want to change the listener so that it would listen just on localhost port 1521:
+
+pre(terminal). vi $ORACLE_HOME/network/admin/listener.ora
+
+and change the contents of the file to:
+
+pre(terminal). SID_LIST_LISTENER =
+  (SID_LIST =
+    (SID_DESC =
+      (SID_NAME = PLSExtProc)
+      (ORACLE_HOME = /Users/oracle/oracle/product/10.2.0/db_1)
+      (PROGRAM = extproc)
+    )
+    (SID_DESC =
+      (SID_NAME = orcl)
+      (ORACLE_HOME = /Users/oracle/oracle/product/10.2.0/db_1)
+    )
+  )
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1))
+      (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))
+    )
+  )
+
+Then also change ORCL alias definition in $ORACLE_HOME/network/admin/tnsnames.ora to:
+
+pre(terminal). ORCL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = orcl)
+    )
+  )
+
+After this change restart listener and try to connect with sqlplus to verify that these changes are successful.
+
+h3. Automatic startup of Oracle database
+
+If you want that Oracle database is started automatically when your computer is booted then you need to create the following startup script. Start terminal and switch to root.
+
+At first edit /etc/oratab and change N to Y at the end of line for ORCL database - this will be used by dbstart utility to find which databases should be started automatically.
+
+Then create startup script for Oracle database:
+
+pre(terminal). mkdir /Library/StartupItems/Oracle
+cd /Library/StartupItems/Oracle
+vi Oracle
+
+and enter the following:
+
+{% highlight sh %}
+#!/bin/sh
+
+# Suppress the annoying "$1: unbound variable" error when no option
+# was given
+if [ -z $1 ] ; then
+  echo "Usage: $0 [start|stop|restart] "
+  exit 1
+fi
+
+# source the common startup script
+. /etc/rc.common
+
+# Change the value of ORACLE_HOME to specify the correct Oracle home
+# directory for the installation
+ORACLE_HOME=/Users/oracle/oracle/product/10.2.0/db_1
+DYLD_LIBRARY_PATH=$ORACLE_HOME/lib
+export ORACLE_HOME DYLD_LIBRARY_PATH
+
+# change the value of ORACLE to the login name of the
+# oracle owner at your site
+ORACLE=oracle
+
+PATH=$PATH:$ORACLE_HOME/bin
+
+# Set shell limits for the Oracle Database
+ulimit -Hu 2068
+ulimit -Su 2068
+ulimit -Hn 65536
+ulimit -Sn 65536
+
+StartService()
+{
+  ConsoleMessage "Starting Oracle Databases"
+  su $ORACLE -c "$ORACLE_HOME/bin/dbstart $ORACLE_HOME"
+}
+
+StopService()
+{
+  ConsoleMessage "Stopping Oracle Databases"
+  su $ORACLE -c "$ORACLE_HOME/bin/dbshut $ORACLE_HOME"
+}
+
+RestartService()
+{
+  StopService
+  StartService
+}
+
+RunService "$1"
+{% endhighlight %}
+
+and then make this script executable
+
+pre(terminal). chmod a+x Oracle
+
+and in addition create properties file:
+
+pre(terminal). vi StartupParameters.plist
+
+with the following contents:
+
+pre(terminal). {
+  Description     = "Oracle Database Startup";
+  Provides        = ("Oracle Database");
+  Requires        = ("Disks");
+  OrderPreference = "None";
+}
+
+Now you can verify that these scripts are working. Open new terminal and try
+
+pre(terminal). sudo /Library/StartupItems/Oracle/Oracle stop
+
+to stop the database and
+
+pre(terminal). sudo /Library/StartupItems/Oracle/Oracle start
+
+to start again the database. And later you can reboot your computer also to verify that Oracle database will be started automatically.
+
+h3. Hide oracle user from login window
+
+After computer reboot you probably noticed that now you got oracle user in initial login window. To get rid of it execute this from terminal:
+
+pre(terminal). sudo defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add oracle
+
+h3. What next?
+
+Now when you have Oracle database installed you would need some development tools that you could use to access the database. Here are some links:
+
+* <a href="http://www.oracle.com/technology/products/database/sql_developer/index.html">Oracle SQL Developer</a> - free Oracle GUI tool that supports Mac OS X as well
+* If you would like to use Ruby and Ruby on Rails then check out my tutorial <a href="http://blog.rayapps.com/2008/04/24/how-to-setup-ruby-and-new-oracle-instant-client-on-leopard/">how to setup Ruby and Oracle client</a>
+* If you would like to use PHP then <a href="http://www.oracle.com/technology/pub/articles/bibbs-php-leopard.html">you can check out this tutorial</a>
+
+Please comment if you find any issues with Oracle Database 10g installation using this tutorial.

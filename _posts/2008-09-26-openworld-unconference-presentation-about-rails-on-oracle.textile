@@ -1,0 +1,18 @@
+---
+layout: post
+title: OpenWorld unconference presentation about Rails on Oracle
+tags: oracle conference ruby rails oracle
+---
+
+On last day of Oracle OpenWorld I did my <a href="http://wiki.oracle.com/page/Oracle+OpenWorld+Unconference">unconference</a> presentation - Using Ruby on Rails with legacy Oracle databases.
+
+As I did not know if anyone will come to listen to it I was glad that six people attended (including <a href="http://db360.blogspot.com/">Kuassi Mensah</a> from Oracle who is helping to promote Ruby support inside Oracle). And on the previous day I also managed to show parts of my presentation to Rich and Anthony from <a href="http://theappslab.com/">Oracle AppsLab</a> team.
+
+I published my slides on Slideshare:
+<div style="text-align:center;"><object id="__sse619018" width="425" height="355"><param name="movie" value="http://static.slidesharecdn.com/swf/ssplayer2.swf?doc=using-rails-with-legacy-oracle-db-1222386749548113-9&stripped_title=using-ruby-on-rails-with-legacy-oracle-databases-presentation" /><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/><embed name="__sse619018" src="http://static.slidesharecdn.com/swf/ssplayer2.swf?doc=using-rails-with-legacy-oracle-db-1222386749548113-9&stripped_title=using-ruby-on-rails-with-legacy-oracle-databases-presentation" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="425" height="355"></embed></object></div>
+
+And I published <a href="http://github.com/rsim/legacy_oracle_sample">my demo project</a> on GitHub:
+
+<div style="text-align:center;"><img src="/images/hr-schema-demo.png" border="0" alt="hr_schema_demo.png" width="640" height="231" /></div>
+
+Thanks to all Oracle people who recognize my work on Ruby and Oracle integration and I hope that our common activities will increase number of Ruby and Rails projects on Oracle :)

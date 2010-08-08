@@ -1,0 +1,106 @@
+---
+layout: post
+title: Custom ActiveRecord create, add and delete methods for legacy databases
+tags: oracle_enhanced ruby rails oracle ruby-plsql
+---
+
+In some Ruby on Rails projects I am putting ActiveRecord interface on top of existing legacy databases. It is quite easy to specify legacy table names and primary keys in ActiveRecord models so that ActiveRecord would generate correct SQL SELECT statements to read data from legacy databases.
+
+But it is more difficult to insert, update and delete in legacy databases using ActiveRecord. When using Oracle legacy databases then quite often they have exposed PL/SQL APIs for writing to tables and you are typically not allowed to directly modify tables with INSERT, UPDATE and DELETE statements.
+
+Therefore I created support for custom create, update and delete methods in the <a href="http://rubyforge.org/frs/?group_id=6212&release_id=23785">version 1.1.3 of ActiveRecord Oracle enhanced adapter</a> which uses also my <a href="http://github.com/rsim/ruby-plsql">ruby-plsql gem</a>.
+
+Let's look at the following example. Assume that we have the following table:
+
+{% highlight sql %}
+CREATE TABLE test_employees (
+  employee_id   NUMBER(6,0),
+  first_name    VARCHAR2(20),
+  last_name     VARCHAR2(25),
+  hire_date     DATE,
+  salary        NUMBER(8,2),
+  version       NUMBER(15,0),
+  create_time   DATE,
+  update_time   DATE
+)
+{% endhighlight %}
+
+And we have the following PL/SQL API package that should be used to write to this table:
+
+{% highlight sql %}
+CREATE OR REPLACE PACKAGE test_employees_pkg IS
+  PROCEDURE create_employee(
+      p_first_name    VARCHAR2,
+      p_last_name     VARCHAR2,
+      p_hire_date     DATE,
+      p_salary        NUMBER,
+      p_employee_id   OUT NUMBER);
+  PROCEDURE update_employee(
+      p_employee_id   NUMBER,
+      p_first_name    VARCHAR2,
+      p_last_name     VARCHAR2,
+      p_hire_date     DATE,
+      p_salary        NUMBER);
+  PROCEDURE delete_employee(
+      p_employee_id   NUMBER);
+END;
+{% endhighlight %}
+
+Then we define ActiveRecord model in the following way:
+
+{% highlight ruby %}
+class TestEmployee < ActiveRecord::Base
+  set_primary_key :employee_id
+  # should return ID of new record
+  set_create_method do
+    plsql.test_employees_pkg.create_employee(
+      :p_first_name => first_name,
+      :p_last_name => last_name,
+      :p_hire_date => hire_date,
+      :p_salary => salary,
+      :p_employee_id => nil
+    )[:p_employee_id]
+  end
+  # return value is ignored
+  set_update_method do
+    plsql.test_employees_pkg.update_employee(
+      :p_employee_id => id,
+      :p_first_name => first_name,
+      :p_last_name => last_name,
+      :p_hire_date => hire_date,
+      :p_salary => salary
+    )
+  end
+  # return value is ignored
+  set_delete_method do
+    plsql.test_employees_pkg.delete_employee(
+      :p_employee_id => id
+    )
+  end
+end
+{% endhighlight %}
+
+And as a result we can use this model in the same way as other ActiveRecord models:
+
+{% highlight ruby %}
+@employee = TestEmployee.create(
+  :first_name => "First",
+  :last_name => "Last",
+  :hire_date => Date.today
+)
+@employee.reload
+@employee.first_name = "Second"
+@employee.save!
+@employee.destroy
+{% endhighlight %}
+
+And all writing to the database will be done using defined API procedures.
+
+Currently this functionality is embedded into Oracle enhanced adapter but if somebody needs it also for other databases this functionality could easily be extraced from the adapter.
+
+To get the new release of Oracle enhanced adapter just do:
+
+pre(terminal). sudo gem install activerecord-oracle_enhanced-adapter
+
+Source code of Oracle enhanced adapter is located at <a href="http://github.com/rsim/oracle-enhanced">GitHub</a> and you can submit bug reports and enhancement requests in <a href="http://rsim.lighthouseapp.com/projects/11468-oracle-enhanced/tickets">Lighthouse</a>.
+

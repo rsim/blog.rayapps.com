@@ -1,0 +1,77 @@
+---
+layout: post
+title: Some issues with Oracle views as ActiveRecord source
+tags: ruby rails oracle
+---
+
+I am using Ruby on Rails to publish data from existing "legacy" application on Oracle database which already have existing complex data model. I am defining additional database views on existing legacy data to which I  grant select rights to  Rails schema. And I am using Rails conventions when defining these views - view names as pluralized / underscored version of Rails model name, ID column as primary key and %_ID columns as foreign keys.
+
+Typically this works quite well and I can use Rails find methods to automatically generate SQL SELECTs from these views. But for some legacy data I got the problem with Oracle number type mapping to Ruby integer type.
+
+Rails standard convention for database NUMBER type mapping is the following:
+
+* NUMBER with specified scale and without precision (e.g. NUMBER(15)) is mapped to :integer
+* NUMBER with specified scale and with precision (e.g. NUMBER(15,2)) is mapped to :decimal
+* NUMBER without scale and precision (just NUMBER) is mapped to :decimal
+
+If primary keys and foreign keys in legacy tables are defined as e.g. NUMBER(15) then everything is OK and they will be mapped to :integer in Rails. But if primary keys or foreign keys in legacy tables are defined as NUMBER then they will be mappec to :decimal in Rails.
+
+And what happens if e.g. primary key is mapped to :decimal in Rails? Then, for example, you get that customer.id is equal to "123.0" and you get ugly URLs like "/customers/123.0".
+
+One workaround is to use customer.id.to_i everywhere but it is quite annoying. Therefore I created patch for Oracle adapter (this is tested with Rails 1.2.3) which always sets data type as :integer for all primary keys (column name ID) and foreign keys (column name like %_ID). This includes also date columns patch that <a href="http://blog.rayapps.com/2007/08/27/how-to-explicitly-set-oracle-date-column-as-ruby-date-attribute/">I wrote about previously</a>.
+
+{% highlight ruby %}
+module ActiveRecord::ConnectionAdapters
+  class OracleColumn
+    def simplified_type(field_type)
+      return :boolean if OracleAdapter.emulate_booleans && field_type == 'NUMBER(1)'
+      case self.name
+        # RSI: treat columns which end with 'date' as ruby date columns
+        when /date$/i then :date
+        # RSI: removed 'date' from regex
+        when /time/i then :datetime
+        # RSI: treat id columns (primary key) as integer
+        when /^id$/i then :integer
+        # RSI: treat _id columns (foreign key) as integer
+        when /_id$/i then :integer
+        else super
+      end
+    end
+  end
+
+  # RSI: patch to change selected results NUMBER to integer for primary and foreign keys
+  class OracleAdapter
+    def select(sql, name = nil)
+      cursor = execute(sql, name)
+      cols = cursor.get_col_names.map { |x| oracle_downcase(x) }
+      rows = []
+
+      while row = cursor.fetch
+        hash = Hash.new
+
+        cols.each_with_index do |col, i|
+          hash[col] =
+            case row[i]
+            when OCI8::LOB
+              name == 'Writable Large Object' ? row[i]: row[i].read
+            when OraDate
+              (row[i].hour == 0 and row[i].minute == 0 and row[i].second == 0) ?
+              row[i].to_date : row[i].to_time
+            else row[i]
+            end unless col == 'raw_rnum_'
+          # RSI: patch - convert to integer if column is ID or ends with _ID
+          hash[col] = hash[col].to_i if (col =~ /^id$/i || col =~ /_id$/i) && hash[col]
+        end
+
+        rows << hash
+      end
+
+      rows
+    ensure
+      cursor.close if cursor
+    end
+  end  
+end
+{% endhighlight %}
+
+I have not yet verified this with Rails 2.0. And probably I will collect all my Oracle adapter patches and will release it as plugin.  Is anybody interested in this?
