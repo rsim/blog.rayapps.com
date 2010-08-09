@@ -1,4 +1,4 @@
 markdown: rdiscount
 pygments: true
 permalink: /:year/:month/:day/:title/
-exclude: Rakefile README.textile
+exclude: deploy.rb Rakefile README.textile

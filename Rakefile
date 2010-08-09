@@ -1,3 +1,6 @@
+deploy_rb = File.expand_path('../deploy.rb', __FILE__)
+require deploy_rb if File.file?(deploy_rb)
+
 def jekyll(opts = "")
   sh "rm -rf _site"
   sh "jekyll " + opts
@@ -13,17 +16,17 @@ task :default do
   jekyll("--server --auto")
 end
 
-desc "Deploy to live site"
+desc "Deploy to default site"
 task :deploy => :"deploy:live"
 
 namespace :deploy do
-  desc "Deploy to Dreamhost"
+  desc "Deploy to live site"
   task :live => :build do
     rsync "blog.rayapps.com"
   end
 
   def rsync(domain)
-    sh "rsync -rtz --delete _site/ raymonds72@cayman.dreamhost.com:~/#{domain}/"
+    sh "rsync -rtz --delete _site/ #{DEPLOY_USER}@#{DEPLOY_HOST}:~/#{domain}/"
   end
 end
 
