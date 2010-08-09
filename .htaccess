@@ -8,6 +8,11 @@
 
  # map old categories to tags
  RewriteRule ^category/oracle-enhanced/?$ /tags/oracle_enhanced/ [R=301,NC,L]
-
  RewriteRule ^category/([_0-9a-z-]+)/?$ /tags/$1/ [R=301,NC,L]
+
+ # map some old comment feeds to Disqus feeds
+ RewriteRule ^2009/09/06/how-to-setup-ruby-and-oracle-instant-client-on-snow-leopard/feed/?$ http://rayapps-blog.disqus.com/how_to_setup_ruby_and_oracle_instant_client_on_snow_leopard_ray_apps_blog/latest.rss [R=301,NC,L]
+ RewriteRule ^2009/09/14/how-to-install-oracle-database-10g-on-mac-os-x-snow-leopard/feed/?$ http://rayapps-blog.disqus.com/how_to_install_oracle_database_10g_on_mac_os_x_snow_leopard_ray_apps_blog/latest.rss [R=301,NC,L]
+ RewriteRule ^2009/04/12/how-to-install-oracle-database-10g-on-mac-os-x-intel/feed/?$ http://rayapps-blog.disqus.com/how_to_install_oracle_database_10g_on_mac_os_x_intel_ray_apps_blog/latest.rss [R=301,NC,L]
+
 </IfModule>
