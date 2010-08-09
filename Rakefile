@@ -5,7 +5,7 @@ end
 
 desc "Build site using Jekyll"
 task :build => :tags do
-  jekyll
+  jekyll("--lsi")
 end
 
 desc "Serve on Localhost with port 4000"
