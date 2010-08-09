@@ -1,0 +1,101 @@
+---
+layout: post
+title: Moving blog from wordpress.com to Jekyll
+tags: wordpress jekyll ruby
+---
+
+<div style="float:right; margin-left:10px;">!http://blog.rayapps.com/images/jekyll.png(Jekyll)!</div>
+
+h3. Why to move?
+
+This blog was hosted for several years on wordpress.com as it was the easiest way to host a blog when I started. But recently I was not very satisfied with it because of the following reasons:
+
+* I include code snippets in my blog posts quite often and several times I had issues with code formatting on wordpress.com. I used MarsEdit to upload blog posts but when I read previous posts back then quite often my < and > symbols were replaced with &amp;lt; and &amp;gt;.
+* I would prefer to write my posts in Textile and not in plain HTML (I think it could be possible also with wordpress.com but it was not obvious to me).
+* I didn't quite like CSS design of my site and wanted to improve it but I prefer minimalistic CSS stylesheets and didn't want to learn how to do design CSS specific for Wordpress sites.
+* Wordpress site was too mainstream, I wanted something more geeky :)
+
+When I do web app development then I use "TextMate":http://macromates.com/ for HTML / CSS and Ruby editing (sometime I use "CSSEdit":http://macrabbit.com/cssedit/ when I need to do more CSS editing), I use "Textile":http://redcloth.org/hobix.com/textile/ for wiki-style content editing in my apps, I use "git":http://git-scm.com/ for version control, I use Ruby rake for build and deployment tasks. Wouldn't it be great if I could use the same toolset for writing my blog?
+
+h3. What is Jekyll?
+
+I had heard about "Jekyll":http://github.com/mojombo/jekyll blogging tool several times and now I decided that it is the time to start to use it. Jekyll was exactly matching my needs:
+
+* You can write blog posts in Textile (or in Markdown)
+* You can design HTML templates and CSS stylesheets as you want and use "Liquid":http://www.liquidmarkup.org/ to embed dynamic content
+* You can store all blog content in git repository (or in any other version control system that you like)
+* And finally you use jekyll Ruby gem to generate static HTML files that can be hosted anywhere
+
+So it sounds quite easy and cool therefore I started migration.
+
+h3. Migration
+
+h4. Initial setup
+
+I started my new blog repository using canonical "example site from Jekyll's creator":http://github.com/mojombo/mojombo.github.com. You just need to remove posts from _posts directory and start to create your own.
+
+h4. Export from wordpress.com
+
+At first I needed to export all my existing posts from wordpress.com. I found "helpful script":http://gist.github.com/268428 which processes wordpress.com export and creates Textile source files for Jekyll as well as comments import file for Disqus (more about that later). It did quite good job but I needed anyway to go manually through all posts to do the following changes:
+
+* I needed to manually change HTML source for lists to Textile formatted lists (export file conversion script converted just headings to Textile formatting) as otherwise they were not looking good when parsed by Textile formatting.
+* I needed to wrap all code snippets with Jekyll code highlighting tags (which uses Pygments tool to generate HTML) - as previously I had not used consistent formatting style I could not do that by global search & replace.
+* I needed to download all uploaded images from wordpress.com and put them in @images@ directory.
+
+h4. CSS design
+
+As I wanted to create more simple and maintainable CSS stylesheets I didn't just copy previous CSS files but manually picked just the parts I needed. And now as I had full control over CSS I spent a lot of time improving my previous design (font sizes, margins, paddings etc.) - but now at least I am more satisfied with it :)
+
+h4. Tags
+
+As all final generated pages are static there is no standard way how to do typical dynamic pages like list of posts with selected tag. But the good thing is that I can create @rake@ tasks that can re-generate all dynamic pages as static pages whenever I do some changes to original posts. I found some examples that I used to create "my rake tasks for tag pages and tag cloud":http://github.com/rsim/blog.rayapps.com/blob/master/Rakefile#L30-87 generation.
+
+h4. Related pages
+
+Previously wordpress.com was showing some automatically generated related posts for each post. Initially it was not quite obvious how to do it (as "site.related_posts":http://github.com/rsim/blog.rayapps.com/blob/master/_layouts/post.html#L19-26 was always showing the latest posts). Then I found that I need to turn on @lsi@ option and in addition install "GSL":http://www.gnu.org/software/gsl/ library (I installed it with "homebrew":http://github.com/mxcl/homebrew) and "RubyGSL":http://rb-gsl.rubyforge.org/ (as otherwise related posts generation was very slow).
+
+h4. Comments
+
+The next issue is that in static HTML site you cannot store comments and you need to use some hosted commenting system. The most frequently commenting system in Jekyll sites is "Disqus":http://disqus.com and therefore I decided to use it as well. It took some time to understand how it works but it provides all necessary HTML snippets that you need to include in your layout templates and then it just works.
+
+"Previously mentioned script":http://gist.github.com/268428 also included possibility to import my existing comments from wordpress.com into Disqus. But that was not quite as easy as I hoped:
+
+* Disqus API that allows to add comments to existing post that is found by URL is not creating new discussion threads if they do not exist. Therefore I needed at first to open all existing pages to create corresponding Disqus discussion threads.
+* As in static HTML case I do not have any post identifiers that could be used as discussion thread identifiers I need to ensure that my new URLs of blog posts are exactly the same as the old ones (in my case I needed to "add / at the end of URLs":http://github.com/rsim/blog.rayapps.com/blob/master/_config.yml#L3 as URL without ending / will be considered as different URL by Disqus).
+* There was issue that some comments in export file had wrong date in URL (it was in cases when draft of post was prepared earlier than post was published) and I needed to fix that in export file.
+
+So be prepared that you will need to import and then delete imported comments several times :)
+
+h4. RSS / Atom feeds
+
+If you have existing subscribers to your RSS or Atom feed then you either need to use the same URL for new feed as well or to redirect it to the new feed URL. In my case I created new Feedburner feed and "redirected old feed URL to the new one in .htaccess file":http://github.com/rsim/blog.rayapps.com/blob/master/.htaccess#L4-7.
+
+h4. Other URL mappings
+
+In my case I renamed @categories@ to @tags@ in my blog posts and URLs but as these old category URLs were indexed by Google and were showing on to Google search results I "redirected them as well in .htaccess file":http://github.com/rsim/blog.rayapps.com/blob/master/.htaccess#L4-7.
+
+h4. Search
+
+If you want to allow search in your blog then the easiest way is just to add Google search box with @sitesearch@ parameter.
+
+h4. Analytics
+
+Previously I used standard wordpress.com analytics pages to review statistics, now I added "Google Analytics":http://www.google.com/analytics for that purpose.
+
+h3. Deployment
+
+Finally after all migration tasks I was ready to deploy my blog into production. As I had account at "Dreamhost":http://www.dreamhost.com/ I decided that it is good enough for static HTML hosting.
+
+I created "rake tasks for deployment":http://github.com/rsim/blog.rayapps.com/blob/master/Rakefile#L1-28 that use rsync for file transfer and now I can just do @rake deploy@ to generate the latest version of site and transfer it to hosting server.
+
+After that I needed to remap DNS name of blog.rayapps.com to new location and wait for several hours until this change propogated over Internet.
+
+h3. Additional HTML generation speed improvements
+
+When I was doing regular HTML re-generation using @jekyll@ I noticed that it started to get quite slow. After investigation I found out that the majority of time went on Pygments execution for code highlighting. To fix this issue I found jekyll patches that implemented Pygments results caching and I added it as "'monkey patch' to my repository":http://github.com/rsim/blog.rayapps.com/blob/master/_plugins/pygments_cache_patch.rb (it stores cached results in @_cache@ directory). After this patch my HTML re-generation happens instantly.
+
+h3. My blog repository
+
+I published "'source code' of my blog on GitHub":http://github.com/rsim/blog.rayapps.com so you can use it as example if I convinced you to migrate to Jekyll as well :)
+
+The whole process took several days but now I am happy with my new "geek blogging platform" and can recommend it to others as well.
