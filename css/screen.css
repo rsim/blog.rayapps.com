@@ -47,35 +47,32 @@ table {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-size: 100%;
+  line-height: 1.5em;
 }
 
 h1 {
-  font-size: 1.9em;
+  font-size: 30px;
   font-weight: bold;
   margin-bottom: 1em;
 }
 
 h2 {
-  font-size: 1.6em;
+  font-size: 22px;
   font-weight: bold;
-  line-height: 1.5em;
   margin-top: 1em;
   margin-bottom: 0.33em;
 }
 
 h3 {
-  font-size: 1.3em;
+  font-size: 18px;
   font-weight: bold;
-  line-height: 1.5em;
   margin-top: 1em;
   margin-bottom: 0.33em;
 }
 
 h4 {
-  font-size: 1.0em;
+  font-size: 14px;
   font-weight: bold;
-  line-height: 1.5em;
   margin-top: 1em;
   margin-bottom: 0.33em;
   border-bottom: 1px solid #CCC;
@@ -117,11 +114,27 @@ h4 {
 
 #sidebar {
   float: right;
-  font-size: 90%;
   position: absolute;
-  right: 2em;
+  right: 1.5em;
   top: 160px;
-  width: 15em;
+  width: 14em;
+}
+
+#sidebar * {
+  font-size: 12px;
+}
+
+#sidebar h2 {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+#sidebar p {
+  margin: 0.2em 0px;
+}
+
+#sidebar img {
+  border-style: none;
 }
 
 #sidebar ul {
@@ -135,20 +148,7 @@ h4 {
 }
 
 #sidebar span.date {
-  color: #000;
-}
-
-#sidebar h2 {
-  font-size: 1em;
-  font-weight: bold;
-}
-
-#sidebar p {
-  margin: 0.2em 0px;
-}
-
-#sidebar img {
-  border-style: none;
+  color: #666;
 }
 
 /* Post */
@@ -257,7 +257,7 @@ ul.posts li {
 }
 
 ul.posts span.date {
-  color: #AAA;
+  color: #666;
   font-family: Monaco, 'Lucida Console', monospace;
   font-size: 80%;
 }
@@ -274,4 +274,8 @@ ul.posts span.date {
   line-height: 1.5em;
   margin-top: 1em;
   margin-bottom: 0.33em;
+}
+
+#sidebar #dsq-combo-widget #dsq-combo-content h3 {
+  font-size: 14px;
 }
