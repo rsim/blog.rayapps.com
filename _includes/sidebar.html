@@ -20,6 +20,13 @@
   {% include tag_cloud.html %}
 </p>
 
+<h2>Search</h2>
+<form action="http://www.google.com/search" id="search" method="get">
+  <input class="text" name="q" type="text" />
+  <input name="sitesearch" type="hidden" value="blog.rayapps.com" />
+  <input class="button" type="submit" value="Google" />
+</form>
+
 <h2>Recent posts</h2>
 <ul class="posts">
   {% for post in site.posts limit:5 %}
