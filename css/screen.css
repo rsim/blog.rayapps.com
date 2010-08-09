@@ -91,7 +91,7 @@ h4 {
   height: 90px;
   padding: 30px 0 0 180px;
   margin: 0px;
-  font-family: Monaco, Consolas, monospace;
+  font-family: Monaco, 'Lucida Console', monospace;
   font-size: 48px;
   font-weight: normal;
   line-height: 1.2;
@@ -196,7 +196,7 @@ div.post {
 .post code {
   background-color: #EEE;
   border: 1px solid #CCC;
-  font-family: Monaco, Consolas, monospace;
+  font-family: Monaco, 'Lucida Console', monospace;
   font-size: 12px;
   font-weight: normal;
   padding: 0 .2em;
@@ -211,7 +211,7 @@ div.post {
   border: 1px solid black;
   background-color: #333;
   color: white;
-  font-family: Monaco, Consolas, monospace;
+  font-family: Monaco, 'Lucida Console', monospace;
   font-size: 12px;
   font-weight: normal;
 }
@@ -258,7 +258,7 @@ ul.posts li {
 
 ul.posts span.date {
   color: #AAA;
-  font-family: Monaco, Consolas, monospace;
+  font-family: Monaco, 'Lucida Console', monospace;
   font-size: 80%;
 }
 
