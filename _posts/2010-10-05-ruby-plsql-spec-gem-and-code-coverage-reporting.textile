@@ -1,0 +1,107 @@
+---
+layout: post
+title: ruby-plsql-spec gem and code coverage reporting
+tags: ruby-plsql oracle plsql testing ruby
+---
+
+During recent Oracle OpenWorld conference I presented session "PL/SQL unit testing can be fun!":http://www.slideshare.net/rsim/plsql-unit-testing-can-be-fun where I demonstrated how to do "PL/SQL unit testing with Ruby":http://blog.rayapps.com/2009/11/27/oracle-plsql-unit-testing-with-ruby/:
+
+<div style="text-align:center;"><object id="__sse5251535" width="425" height="355"><param name="movie" value="http://static.slidesharecdn.com/swf/ssplayer2.swf?doc=plsqlunittestingcanbefun-100921132711-phpapp02&rel=0&stripped_title=plsql-unit-testing-can-be-fun&userName=rsim" /><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/><embed name="__sse5251535" src="http://static.slidesharecdn.com/swf/ssplayer2.swf?doc=plsqlunittestingcanbefun-100921132711-phpapp02&rel=0&stripped_title=plsql-unit-testing-can-be-fun&userName=rsim" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="425" height="355"></embed></object></div>
+
+Audience was quite interested and had a lot of questions and therefore it motivated me to do some more improvements to ruby-plsql-spec to make it easier for newcomers.
+
+h3. ruby-plsql-spec gem and plsql-spec command line utility
+
+Initially "ruby-plsql-spec":http://github.com/rsim/ruby-plsql-spec was just repository of sample tests and if you wanted to start to use it in your project you had to manually pick necessary files and copy them to your project directory.
+
+Now ruby-plsql-spec is released as a gem which includes all necessary dependencies (except ruby-oci8 which you should install if using MRI Ruby implementation) and you can install it with
+
+pre(terminal). gem install ruby-plsql-spec
+
+See more information about installation in "README":http://github.com/rsim/ruby-plsql-spec/blob/master/README.markdown file or see specific "installation instructions on Windows":http://github.com/rsim/ruby-plsql-spec/blob/master/INSTALL-Windows.markdown.
+
+When you have installed ruby-plsql-spec gem and want to start to use it in your existing project then go to your project directory and from command line execute
+
+pre(terminal). plsql-spec init
+
+It will create @spec@ subdirectory in current directory where all initial supporting files will be created. The main configuration file which should be updated is @spec/database.yml@ where you should specify username, password and database connection string that should be used when running tests:
+
+{% highlight text %}
+default:
+  username: hr
+  password: hr
+  database: orcl
+{% endhighlight %}
+
+If you specify just @database:@ name then it will be used as TNS connection string (and TNS_ADMIN environment variable should point to directory where tnsnames.ora file is located) or you can also provide @hostname:@ and if necessary also @port:@ parameters and then you can connect to database without tnsnames.ora file.
+
+Now you can start to create your tests in @spec@ directory and your tests file names should end with @_spec.rb@. You can see some examples at "ruby-plsql-spec examples directory":http://github.com/rsim/ruby-plsql-spec/tree/master/examples/spec/
+
+To validate your installation you can try to create simple dummy test in @spec/dummy_spec.rb@:
+
+{% highlight ruby %}
+require "spec_helper"
+
+describe "test installation" do
+  it "should get SYSDATE" do
+    plsql.sysdate.should_not == NULL
+  end
+end
+{% endhighlight %}
+
+And now from command line you can try to run your test with:
+
+pre(terminal). plsql-spec run
+
+If everything is fine you should see something similar like this:
+
+<pre class="terminal">Running all specs from spec/
+.
+
+Finished in 0.033782 seconds
+
+1 example, 0 failures</pre>
+
+h3. Code coverage reporting
+
+During my Oracle OpenWorld presentation I also showed how to get PL/SQL code coverage report (which shows which PL/SQL code lines were executed during tests run). It might be useful when you want to identify which existing PL/SQL code is not yet covered by unit tests.
+
+Now code coverage reporting is even easier with new ruby-plsql-spec gem. It uses Oracle database "DBMS_PROFILER":http://download.oracle.com/docs/cd/B19306_01/appdev.102/b14258/d_profil.htm package to collect code coverage information and I took "rcov":http://github.com/relevance/rcov reports HTML and CSS files to present results (so that they would be very similar to Ruby code coverage reports).
+
+To try code coverage reporting let's create simple PL/SQL function:
+
+{% highlight sql %}
+CREATE OR REPLACE FUNCTION test_profiler RETURN VARCHAR2 IS
+BEGIN
+  RETURN 'test_profiler';
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN 'others';
+END;
+{% endhighlight %}
+
+and simple test to verify code coverage reporting:
+
+{% highlight ruby %}
+require "spec_helper"
+
+describe "test code coverage" do
+  it "should get result" do
+    plsql.test_profiler.should == 'test_profiler'
+  end
+end
+{% endhighlight %}
+
+And now you can run tests with @--coverage@ option which will produce code coverage report:
+
+pre(terminal). plsql-spec run --coverage
+
+As a result code coverage reports are created in @coverage/@ subdirectory. Open @coverage/index.html@ in your browser and click on @TEST_PROFILER@ function and you should see something similar like this report:
+
+!http://blog.rayapps.com/images/test_profiler.png!
+
+You can see that @RETURN 'test_profiler';@ line (with green background) was executed by test but @RETURN 'others';@ line (with red background) was not. Lines with light background are ignored by DBMS_PROFILER and I do not take them into account when calculating code coverage percentage (but they are taken into account when calculating total coverage percentage).
+
+h3. Questions or feedback
+
+If you have any other questions about using ruby-plsql-spec for PL/SQL unit testing then please post comments here or if you find any issues when using ruby-plsql-spec then please report them at "GitHub issues":http://github.com/rsim/ruby-plsql-spec/issues page.
