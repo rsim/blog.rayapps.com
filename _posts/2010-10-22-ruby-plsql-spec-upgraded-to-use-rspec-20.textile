@@ -1,0 +1,38 @@
+---
+layout: post
+title: ruby-plsql-spec upgraded to use RSpec 2.0
+tags: ruby-plsql oracle plsql testing ruby
+---
+
+Initial version of "ruby-plsql-spec gem":http://blog.rayapps.com/2010/10/05/ruby-plsql-spec-gem-and-code-coverage-reporting/ was using RSpec version 1.3. But recently "RSpec 2.0 was released":http://blog.davidchelimsky.net/2010/10/10/rspec-200-is-released/ which API is not compatible with previous RSpec 1.x API and as a result @plsql-spec@ utility was failing if just RSpec was upgraded to version 2.0.
+
+Therefore I updated also ruby-plsql-spec to use latest RSpec 2.0 gem and released *ruby-plsql-spec gem version 0.2.1*. You can install the latest version with
+
+pre(terminal). gem install ruby-plsql-spec
+
+h3. Upgrade from previous version
+
+If you previously already installed initial ruby-plsql-spec version 0.1.0 then you need to update your @spec/spec_helper.rb@ file to use RSpec 2.0. You can do it by running one more time
+
+pre(terminal). plsql-spec init
+
+which will check which current files are different from the latest templates. You need to update just spec_helper.rb file. When you will be prompted to overwrite spec_helper.rb file then at first you can enter @d@ to see differences between current file and new template. If you have not changed original spec_helper.rb file then you will see just one difference
+
+<pre class="terminal">
+- Spec::Runner.configure do |config|
++ RSpec.configure do |config|
+</pre>
+
+You can then answer @y@ and this file will be updated. When you will be prompted to overwrite other files then you can review the changes in the same way and decide if you want them to be overwritten or not (e.g. do not overwrite @database.yml@ file as it has your specific database connection settings).
+
+h3. HTML output option
+
+In addition @plsql-spec@ utility now has @--html@ option which will generate test results report as HTML report. It might be useful for usage in text editors where you can define which command line utility to run when pressing some shortcut key and then display generated HTML output report. If you will execute
+
+pre(terminal). plsql-spec run --html
+
+then it will generate HTML report in @test-results.html@ file. You can override this file name as well using @--html output_file_name.html@ option.
+
+h3. Questions or suggestions
+
+If you have any other feature suggestions or questions about ruby-plsql-spec then please post comments here or report any bugs at "GitHub issues":http://github.com/rsim/ruby-plsql-spec/issues page.
