@@ -1,0 +1,39 @@
+---
+layout: post
+title: Recent conference presentations
+tags: conference ruby oracle_enhanced mondrian-olap javascript coffeescript
+---
+
+Recently I has not posted any new posts as I was busy with some new projects as well as during May attended several conferences and in some I also did presentations. Here I will post slides from these conferences. If you are interested in some of these topics then ask me to come to you as well and talk about these topics :)
+
+h3. Agile Riga Day
+
+In March I spoke at "Agile Riga Day":http://www.agilerigaday.lv (organized by "Agile Latvia":http://www.agile-latvia.org) about my experience and recommendations how to adopt Agile practices in iterative style.
+
+<div style="text-align:center;"><span style="width:425px;" id="__ss_7158771"> <strong style="display:block;margin:12px 0 4px"><a href="http://www.slideshare.net/rsim/how-to-adopt-agile-at-your-organization" title="How to Adopt Agile at Your Organization">How to Adopt Agile at Your Organization</a></strong> <iframe src="http://www.slideshare.net/slideshow/embed_code/7158771" width="425" height="355" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe> </span></div>
+
+h3. RailsConf
+
+In May I travelled to "RailsConf":http://en.oreilly.com/rails2011 in Baltimore and I hosted traditional "Rails on Oracle":http://en.oreilly.com/rails2011/public/schedule/detail/19366 Birds of a Feather session there and gave overview about how to contribute to ActiveRecord Oracle enhanced adapter.
+
+<div style="text-align:center;"><span style="width:425px" id="__ss_8004773"> <strong style="display:block;margin:12px 0 4px"><a href="http://www.slideshare.net/rsim/rails-on-oracle-2011" title="Rails on Oracle 2011">Rails on Oracle 2011</a></strong> <iframe src="http://www.slideshare.net/slideshow/embed_code/8004773" width="425" height="355" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe> </span></div>
+
+h3. TAPOST
+
+Then I participated in our local "Theory and Practice of Software Testing (TAPOST)":http://www.itbaltic.com/conferences/tapost2011 conference and there I promoted use of Ruby as test scripting language.
+
+<div style="text-align:center;"><span style="width:425px" id="__ss_8114164"> <strong style="display:block;margin:12px 0 4px"><a href="http://www.slideshare.net/rsim/why-every-tester-should-learn-ruby" title="Why Every Tester Should Learn Ruby">Why Every Tester Should Learn Ruby</a></strong> <iframe src="http://www.slideshare.net/slideshow/embed_code/8114164" width="425" height="355" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe></span></div>
+
+h3. RailsWayCon
+
+And lastly I participated in "Euruko":http://euruko2011.org and "RailsWayCon":http://railswaycon.com conferences in Berlin. In RailsWayCon my first presentation was about multidimensional data analysis with JRuby and "mondrian-olap":https://github.com/rsim/mondrian-olap gem. I also published "mondrian-olap demo":https://github.com/rsim/mondrian_demo project that I used during presentation.
+
+<div style="text-align:center;"><span style="width:425px" id="__ss_8195174"> <strong style="display:block;margin:12px 0 4px"><a href="http://www.slideshare.net/rsim/railswaycon-multidimensional-data-analysis-with-jruby" title="RailsWayCon: Multidimensional Data Analysis with JRuby">RailsWayCon: Multidimensional Data Analysis with JRuby</a></strong> <iframe src="http://www.slideshare.net/slideshow/embed_code/8195174" width="425" height="355" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe></span></div>
+
+And second RailsWayCon presentation was about "CoffeeScript":http://jashkenas.github.com/coffee-script, "Backbone.js":http://documentcloud.github.com/backbone and "Jasmine":http://pivotal.github.com/jasmine that I am recently using to build rich web user interfaces. This was quite successful presentation as there were many questions and also many participants were encouraged to try out CoffeeScript and Backbone.js. I also published my "demo application":https://github.com/rsim/backbone_coffeescript_demo that I used for code samples during presentation.
+
+<div style="text-align:center;"><span style="width:425px" id="__ss_8196890"> <strong style="display:block;margin:12px 0 4px"><a href="http://www.slideshare.net/rsim/railslike-javascript-using-coffeescript-backbonejs-and-jasmine-8196890" title="Rails-like JavaScript Using CoffeeScript, Backbone.js and Jasmine">Rails-like JavaScript Using CoffeeScript, Backbone.js and Jasmine</a></strong> <iframe src="http://www.slideshare.net/slideshow/embed_code/8196890" width="425" height="355" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe></span></div>
+
+h3. Next conferences
+
+Now I will rest for some time from conferences :) But then I will attend "FrozenRails":https://frozenrails.eu in Helsinki and I will present at "Oracle OpenWorld":http://www.oracle.com/openworld/index.html in San Francisco. See you there!
