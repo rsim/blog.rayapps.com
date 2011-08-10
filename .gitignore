@@ -1,4 +1,5 @@
 .rvmrc
+.livereload
 _cache/
 _drafts/
 _site/
