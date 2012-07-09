@@ -6,7 +6,7 @@ tags: eazyBI business-intelligence mondrian-olap
 
 I have been interested in business intelligence and data warehouse solutions for quite a while. And I have seen that traditional data warehouse and business intelligence tool implementations take quite a long time and cost a lot to set up infrastructure, develop or implement business intelligence software and train users. And many business users are not using business intelligence tools because they are too hard to learn and use.
 
-<a href="https://eazybi.com"><img src="/images/eazybi.gif" style="float: left; margin: 20px;"/></a>Therefore some while ago a had an idea of developing easy-to-use business intelligence web application that you could implement and start to use right away and which would focus on ease-of-use and not on too much unnecessary features. And result of this idea is [eazyBI](https://eazybi.com) which after couple months of beta testing now is launched in production.
+<a href="https://eazybi.com"><img src="/images/eazybi.png" style="float: left; margin: 20px;"/></a>Therefore some while ago a had an idea of developing easy-to-use business intelligence web application that you could implement and start to use right away and which would focus on ease-of-use and not on too much unnecessary features. And result of this idea is [eazyBI](https://eazybi.com) which after couple months of beta testing now is launched in production.
 
 ### Many sources of data
 
@@ -28,7 +28,7 @@ Therefore my goal for eazyBI is to make it with less features but any feature th
 
 When you have created some report which you would like to share with other your colleagues, customers or partners then you can either send link to report or you can also embed report into other HTML pages. Here is example of embedded report from demo eazyBI account:
 
-<div style="text-align:center;"><iframe width="650" height="475" src="https://eazybi.com/accounts/1/embed/report/111?dashboard_id=6" frameborder="0"></iframe></div>
+<div style="text-align:center;"><iframe width="750" height="475" src="https://eazybi.com/accounts/1/embed/report/111?dashboard_id=6" frameborder="0"></iframe></div>
 
 Embedded reports are fully dynamic and will show latest data when page will be refreshed. They can be embedded in company intranets, wikis or blogs or any other web pages.
 
