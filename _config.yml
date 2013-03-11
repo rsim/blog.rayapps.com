@@ -1,4 +1,7 @@
-markdown: rdiscount
+# markdown: rdiscount
+markdown: redcarpet2
+redcarpet:
+  extensions: ["no_intra_emphasis", "fenced_code_blocks", "autolink", "strikethrough", "superscript", "with_toc_data"]
 pygments: true
 permalink: /:year/:month/:day/:title/
 exclude: deploy.rb Rakefile README.textile
