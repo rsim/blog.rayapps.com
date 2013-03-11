@@ -181,6 +181,7 @@ div.post {
   background-color: #EEE;
   border: 1px solid #CCC;
   padding: 0 .4em;
+  overflow-x: auto;
 }
 
 .post ul,
